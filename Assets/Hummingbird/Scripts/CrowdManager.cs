@@ -19,7 +19,7 @@ public class CrowdManager : MonoBehaviour
         {
             GameObject newAgent = Instantiate(
                 agentPrefab,
-                new Vector3(Random.insideUnitCircle.x * agentDensity, yPos, Random.insideUnitCircle.y * agentDensity),
+                new Vector3(0, 0, 0),
                 Quaternion.Euler(Vector3.up * Random.Range(0f, 360f)),
                 this.transform
                 );

@@ -39,14 +39,14 @@ public class HummingbirdAgent : Agent
     [Tooltip("Train or gameplay mode")]
     public bool trainingMode;
 
-    new private Rigidbody rigidbody;
+    //private Rigidbody rigidbody;
     public FlowerArea flowerArea;
     private Flower nearestFlower;
-    // private float smoothPitchChange = 0f;
-    // private float smoothYawChange = 0f;
+    private float smoothPitchChange = 0f;
+    private float smoothYawChange = 0f;
     private const float MaxPitchAngle = 80f;
     private const float BeakTipRadius = 0.008f;
-    // private bool isFrozen = false;
+    private bool isFrozen = false;
 
     /// <summary>
     /// nectar obtained in the episode
@@ -67,13 +67,12 @@ public class HummingbirdAgent : Agent
     public override void Initialize()
     {
         this.controller = this.gameObject.GetComponent<CharacterController>();
-        rigidbody = this.gameObject.GetComponent<Rigidbody>();
+        hummingBirdRigidbody = this.gameObject.GetComponent<Rigidbody>();
         flowerArea = this.gameObject.GetComponentInParent<FlowerArea>();
 
         // if not training mode, no max steps, play forever
         if (!trainingMode)
         {
-            Debug.Log("traningMode is false000000");
             MaxStep = 0;
         }
     }
@@ -82,7 +81,6 @@ public class HummingbirdAgent : Agent
     {
         if (trainingMode)
         {
-            Debug.Log("traningMode is true1");
             // reset flowers and one agent only
             // flowerArea.ResetFlowers();
         }
@@ -91,15 +89,14 @@ public class HummingbirdAgent : Agent
         NectarObtained = 0f;
 
         // zero out velocities for new episode
-        rigidbody.velocity = Vector3.zero;
-        rigidbody.angularVelocity = Vector3.zero;
+        hummingBirdRigidbody.velocity = Vector3.zero;
+        hummingBirdRigidbody.angularVelocity = Vector3.zero;
 
         // default to spawning i.f.o a flower
         bool inFrontOfFlower = true;
 
         if (trainingMode)
         {
-            Debug.Log("traningMode is true2");
             inFrontOfFlower = UnityEngine.Random.value > 0.5f;
         }
 
@@ -121,34 +118,59 @@ public class HummingbirdAgent : Agent
     /// index 4: yaw angle (+1 right, -1 left) 
     /// </summary>
     /// <param name="vectorAction">The actions to take</param>
-    //public override void OnActionReceived(float[] vectorAction)
-    //{
-    //    if (isFrozen) return;
-    //    Vector3 move = new Vector3(vectorAction[0], vectorAction[1], vectorAction[2]);
-    //    // add force
-    //    rigidbody.AddForce(move * moveForce);
-    //    // rotation
-    //    // current rotation
-    //    Vector3 rotationVector = transform.rotation.eulerAngles;
-    //    // calculate pitch and yaw
-    //    float pitchChange = vectorAction[3];
-    //    float yawchange   = vectorAction[4];
-    //    // smooth rotation
-    //    smoothPitchChange = Mathf.MoveTowards(
-    //        smoothPitchChange, pitchChange, 2f*Time.fixedDeltaTime);
-    //    smoothYawChange = Mathf.MoveTowards(
-    //        smoothYawChange, yawchange, 2f * Time.fixedDeltaTime);
-    //    // new pitch and new
-    //    // clamp pitch to avoid flipping
-    //    float pitch = rotationVector.x + smoothPitchChange * Time.fixedDeltaTime * pitchSpeed;
-    //    if (pitch > 180f) pitch -= 360f;
-    //    pitch = Mathf.Clamp(pitch, - MaxPitchAngle, +MaxPitchAngle);
+    public override void OnActionReceived(float[] vectorAction)
+    {
+        if (isFrozen) return;
+        Vector3 move = new Vector3(vectorAction[0], vectorAction[1], vectorAction[2]);
+        // add force
+        hummingBirdRigidbody.AddForce(move * moveForce);
+        // rotation
+        // current rotation
+        Vector3 rotationVector = transform.rotation.eulerAngles;
+        // calculate pitch and yaw
+        float pitchChange = vectorAction[3];
+        float yawchange   = vectorAction[4];
+        // smooth rotation
+        smoothPitchChange = Mathf.MoveTowards(
+            smoothPitchChange, pitchChange, 2f*Time.fixedDeltaTime);
+        smoothYawChange = Mathf.MoveTowards(
+            smoothYawChange, yawchange, 2f * Time.fixedDeltaTime);
+        // new pitch and new
+        // clamp pitch to avoid flipping
+        float pitch = rotationVector.x + smoothPitchChange * Time.fixedDeltaTime * pitchSpeed;
+        if (pitch > 180f) pitch -= 360f;
+        pitch = Mathf.Clamp(pitch, - MaxPitchAngle, +MaxPitchAngle);
 
-    //    float yaw = rotationVector.y + smoothYawChange * Time.fixedDeltaTime * yawSpeed;
+        float yaw = rotationVector.y + smoothYawChange * Time.fixedDeltaTime * yawSpeed;
 
-    //    // apply rotation
-    //    transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
-    //}
+        // apply rotation
+        transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
+
+
+        ////////////  군집
+        Vector3 controlSignal = Vector3.zero;
+        controlSignal.x = vectorAction[0];
+        controlSignal.z = vectorAction[1];
+
+        this.controller.Move(Vector3.ClampMagnitude(controlSignal, 1.0f) * speed * Time.deltaTime);
+
+        CheckIfCollidingWithFood(); // set reward if the agent hits flower.
+
+        if (Physics.CheckSphere(this.gameObject.transform.position, this.gameObject.GetComponent<SphereCollider>().radius + 0.1f, wallMask))
+        {
+            Debug.Log("Crush rock");
+            SetReward(-0.5f);
+            EndEpisode();
+        }
+
+        if (Vector3.Distance(this.transform.position, humanHandAvatar.transform.position) <= 0.65f) // predator -> humanHandAvatar.humanAvatar
+        {
+            Debug.Log("Distance - ( agent and hand )  :"+Vector3.Distance(this.transform.position, humanHandAvatar.transform.position));
+            Debug.Log("Follow hand:  " + transform.name);
+            SetReward(1.0f);
+            EndEpisode();
+        }
+    }
 
     // boids 
 
@@ -167,6 +189,7 @@ public class HummingbirdAgent : Agent
         Collider[] hitColliders = Physics.OverlapSphere(this.transform.position, 0.4f, layerMask); // foodMask -> flower
         if (hitColliders.Length != 0)
         {
+            Debug.Log("eatting flower");
             SetReward(0.5f);
 
             for (int i = 0; i < hitColliders.Length; i++)
@@ -176,76 +199,88 @@ public class HummingbirdAgent : Agent
         }
     }
     // Agent Action function 
-    public override void OnActionReceived(float[] vectorAction)
-    {
-        Vector3 controlSignal = Vector3.zero;
-        controlSignal.x = vectorAction[0];
-        controlSignal.z = vectorAction[1];
+    //public override void OnActionReceived(float[] vectorAction)
+    //{
+    //    Vector3 controlSignal = Vector3.zero;
+    //    controlSignal.x = vectorAction[0];
+    //    controlSignal.z = vectorAction[1];
 
-        this.controller.Move(Vector3.ClampMagnitude(controlSignal, 1.0f) * speed * Time.deltaTime);
+    //    this.controller.Move(Vector3.ClampMagnitude(controlSignal, 1.0f) * speed * Time.deltaTime);
 
-        CheckIfCollidingWithFood(); // set reward if the agent hits flower.
+    //    CheckIfCollidingWithFood(); // set reward if the agent hits flower.
         
-        if (Physics.CheckSphere(this.gameObject.transform.position, this.gameObject.GetComponent<SphereCollider>().radius + 0.1f, wallMask))
-        {
-            SetReward(-0.5f);
-            EndEpisode();
-        }
+    //    if (Physics.CheckSphere(this.gameObject.transform.position, this.gameObject.GetComponent<SphereCollider>().radius + 0.1f, wallMask))
+    //    {
+    //        SetReward(-0.5f);
+    //        EndEpisode();
+    //    }
 
-        if (Vector3.Distance(this.transform.position, humanHandAvatar.transform.position) <= 0.65f) // predator -> humanHandAvatar.humanAvatar
-        {
-            SetReward(1.0f);
-            EndEpisode();
-        }
+    //    if (Vector3.Distance(this.transform.position, humanHandAvatar.transform.position) <= 0.65f) // predator -> humanHandAvatar.humanAvatar
+    //    {
+    //        SetReward(1.0f);
+    //        EndEpisode();
+    //    }
 
-       //Monitor.Log("reward", GetCumulativeReward());
-        // FellOffThePlatform();
-    }
+    //   //Monitor.Log("reward", GetCumulativeReward());
+    //    // FellOffThePlatform();
+    //}
 
     /// <summary>
     /// Collect vecotr observations from the environment
     /// </summary>
     /// <param name="sensor">The vector sensor</param>
-    //public override void CollectObservations(VectorSensor sensor)
-    //{
-    //    if (nearestFlower == null)
-    //    {
-    //        sensor.AddObservation(new float[10]);
-    //        return;
-    //    }
-
-    //    // Observe the local rotation
-    //    sensor.AddObservation(transform.localRotation.normalized);
-    //    Vector3 toFlower = nearestFlower.FlowerCenterVector - beakTip.position;
-    //    // pointing to nearest flower
-    //    sensor.AddObservation(toFlower.normalized);
-    //    // dot product observation - beak tip in front of flower?
-    //    // +1 -> infront, -1 -> behind
-    //    sensor.AddObservation(
-    //        Vector3.Dot(toFlower.normalized, -nearestFlower.FlowerUpVector.normalized));
-    //    // beak tip point to flower
-    //    sensor.AddObservation(
-    //        Vector3.Dot(beakTip.forward.normalized, -nearestFlower.FlowerUpVector.normalized));
-    //    // relative distance from beek tip to flower
-    //    sensor.AddObservation(toFlower.magnitude / FlowerArea.AreaDiameter);
-    //    // 10 total observations
-    //}
-
-    // boids 
     public override void CollectObservations(VectorSensor sensor)
     {
-        sensor.AddObservation(this.transform.position);
-        sensor.AddObservation(this.rigidbody.velocity.x);
-        sensor.AddObservation(this.rigidbody.velocity.z);
-        myLastPosition = this.transform.position;
-        sensor.AddObservation(this.transform.forward.normalized);
+        if (nearestFlower == null)
+        {
+            sensor.AddObservation(new float[10]);
+            return;
+        }
 
-        sensor.AddObservation(humanHandAvatar.transform.position);
-        sensor.AddObservation(humanHandAvatar.velocity.x);
-        sensor.AddObservation(humanHandAvatar.velocity.z);
-        sensor.AddObservation(Vector3.Distance(this.transform.position, humanHandAvatar.transform.position));
-        sensor.AddObservation(humanHandAvatar.transform.forward.normalized);
+        // Observe the local rotation
+        sensor.AddObservation(transform.localRotation.normalized);//3
+        Vector3 toFlower = nearestFlower.FlowerCenterVector - beakTip.position;
+        // pointing to nearest flower
+        sensor.AddObservation(toFlower.normalized);//3
+        // dot product observation - beak tip in front of flower?
+        // +1 -> infront, -1 -> behind
+        sensor.AddObservation(
+            Vector3.Dot(toFlower.normalized, -nearestFlower.FlowerUpVector.normalized));//1
+        // beak tip point to flower
+        sensor.AddObservation(
+            Vector3.Dot(beakTip.forward.normalized, -nearestFlower.FlowerUpVector.normalized));//1
+        // relative distance from beek tip to flower
+        sensor.AddObservation(toFlower.magnitude / FlowerArea.AreaDiameter);//1
+        // 10 total observations
+
+        sensor.AddObservation(this.transform.position.normalized);//3
+        sensor.AddObservation(this.hummingBirdRigidbody.velocity.x);
+        sensor.AddObservation(this.hummingBirdRigidbody.velocity.z);
+        myLastPosition = this.transform.position;
+        sensor.AddObservation(this.transform.forward.normalized); //3
+
+        sensor.AddObservation(humanHandAvatar.transform.position.normalized);//3
+        sensor.AddObservation(humanHandAvatar.velocity.x);//1
+        sensor.AddObservation(humanHandAvatar.velocity.z);//1
+        sensor.AddObservation(Vector3.Distance(this.transform.position, humanHandAvatar.transform.position));//1
+        sensor.AddObservation(humanHandAvatar.transform.forward.normalized);//3
     }
+
+    // boids 
+    //public override void CollectObservations(VectorSensor sensor)
+    //{
+    //    sensor.AddObservation(this.transform.position);
+    //    sensor.AddObservation(this.rigidbody.velocity.x);
+    //    sensor.AddObservation(this.rigidbody.velocity.z);
+    //    myLastPosition = this.transform.position;
+    //    sensor.AddObservation(this.transform.forward.normalized);
+
+    //    sensor.AddObservation(humanHandAvatar.transform.position);
+    //    sensor.AddObservation(humanHandAvatar.velocity.x);
+    //    sensor.AddObservation(humanHandAvatar.velocity.z);
+    //    sensor.AddObservation(Vector3.Distance(this.transform.position, humanHandAvatar.transform.position));
+    //    sensor.AddObservation(humanHandAvatar.transform.forward.normalized);
+    //}
 
     /// <summary>
     /// no neural net, use it
@@ -291,8 +326,8 @@ public class HummingbirdAgent : Agent
     public void FreezeAgent()
     {
         Debug.Assert(trainingMode == false, "Freeze/unfreeze not supported in training");
-        //isFrozen = true;
-        rigidbody.Sleep();
+        isFrozen = true;
+        hummingBirdRigidbody.Sleep();
     }
     /// <summary>
     /// resume movement
@@ -300,8 +335,8 @@ public class HummingbirdAgent : Agent
     public void UnfreezeAgent()
     {
         Debug.Assert(trainingMode == false, "Freeze/unfreeze not supported in training");
-        //isFrozen = false;
-        rigidbody.WakeUp();
+        isFrozen = false;
+        hummingBirdRigidbody.WakeUp();
     }
 
 
@@ -427,7 +462,7 @@ public class HummingbirdAgent : Agent
                 NectarObtained += nectarReceived;
                 if (trainingMode)
                 {
-                    Debug.Log("traningMode is true3");
+                    Debug.Log("Goal");
                     // calculate reward for getting nectar
                     float bonus = 0.02f * Mathf.Clamp01(
                         Vector3.Dot(transform.forward.normalized,
@@ -452,7 +487,7 @@ public class HummingbirdAgent : Agent
     {
         if (trainingMode && collision.collider.CompareTag("boundary"))
         {
-            Debug.Log("traningMode is true4");
+            Debug.Log("crush boundary");
             // boundary negative reward
             AddReward(-0.5f); // discourage getting outside
         }

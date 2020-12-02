@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class CrowdMember : MonoBehaviour
 {
-    public CharacterController controller;
+    public CharacterController[] controller;
     public float cohesionWeight = 0.1f;
     public float alignmentWeight = 0.1f;
     public float avoidanceWeight = 0.1f;
@@ -13,17 +13,24 @@ public class CrowdMember : MonoBehaviour
     public List<GameObject> agents;
     public float neighborRadius; // set in the inspector.
     public float avoidanceRadius = 0.1f; // [m]
-    public FibonacciRays fibonacciRays;
+    //public FibonacciRays fibonacciRays;
     int userMask;
     public float movementScalingFactor; // set in the inspector.
     public float maxSpeed; // set in the inspector.
+    bool init = true;
+
+
     private void Start()
     {
+
         userMask = 1 << LayerMask.NameToLayer("user");
         GameObject parentObject = this.gameObject.transform.parent.gameObject; // parentObject is CrowdManager.
         crowdManager = parentObject.GetComponent<CrowdManager>();
         agents = crowdManager.agents;
-        fibonacciRays = new FibonacciRays();
+        controller = new CharacterController[crowdManager.startingCount];
+ 
+        
+        //fibonacciRays = new FibonacciRays();
     }
     List<GameObject> GetNeighbors(List<GameObject> agents, float neighborRadius) 
     {
@@ -101,13 +108,35 @@ public class CrowdMember : MonoBehaviour
         return avoidMove;
     }
 
+    public int numViewDirections = 10;
+    Vector3[] directions;
+    Vector3[] FibonacciRays()
+    {
+        directions = new Vector3[numViewDirections];
+        float goldenRatio = (1 + Mathf.Sqrt(5)) / 2;
+        float angleIncrement = Mathf.PI * 2 * goldenRatio;
+
+        for (int i = 0; i < numViewDirections; i++)
+        {
+            float t = (float)i / numViewDirections;
+            float inclination = Mathf.Acos(1 - 2 * t);
+            float azimuth = angleIncrement * i;
+
+            float x = Mathf.Sin(inclination) * Mathf.Cos(azimuth);
+            float y = 0;
+            float z = Mathf.Cos(inclination);
+            directions[i] = new Vector3(x, y, z);
+        }
+        return directions;
+    }
     // 'Obstacle avoidance' function of the 'Crowd Member' class
     Vector3 AttractVectorToUsers()
     {
-        Vector3[] rayDirections = fibonacciRays.directions;
+        Vector3[] rayDirections = FibonacciRays();
+        Debug.Log("FibonacciRays  -> rayDirections   :   " + rayDirections[0]+"  "+ rayDirections[1] +"  "+ rayDirections[2] + "  " + rayDirections[3]);
         float raySphereRadius = 0.2f;
         float obstCollisionAvoidDst = 0.2f;
-
+        
         for (int i = 0; i < rayDirections.Length; i++)
         {
             Vector3 dir = this.transform.TransformDirection(rayDirections[i]);
@@ -115,6 +144,7 @@ public class CrowdMember : MonoBehaviour
             if (!Physics.SphereCast(ray, raySphereRadius, obstCollisionAvoidDst, userMask))
             // SphereCast(Ray ray, float radius, float maxDistance, int layerMask);
             {
+                Debug.Log(i + " AttractVectorToUsers   :   " + dir);
                 return dir;
             }
         }
@@ -155,11 +185,27 @@ public class CrowdMember : MonoBehaviour
             move = move.normalized * maxSpeed;
         }
 
-        this.controller.Move(move * Time.deltaTime);
+        if(init)
+        {
+            for (int i = 0; i < agents.Count; i++)
+            {
+                controller[i] = agents[i].GetComponent<CharacterController>();
+            }
+            init = false;
+        }
+
+        Debug.Log("move : " + move);
+
+        for (int i = 0; i < agents.Count; i++)
+        {
+            this.controller[i].Move(move * Time.deltaTime);
+        }
     }
     // Update is called once per frame
-    void fixedUpdate() 
+
+    private void FixedUpdate()
     {
+
         Move();
     }
 }

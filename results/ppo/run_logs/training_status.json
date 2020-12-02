@@ -2,17 +2,17 @@
     "Hummingbird": {
         "checkpoints": [
             {
-                "steps": 18256,
-                "file_path": "results/ppo/Hummingbird/Hummingbird-18256.nn",
-                "reward": 0.0,
-                "creation_time": 1606751810.246767
+                "steps": 44215,
+                "file_path": "results/ppo/Hummingbird/Hummingbird-44215.nn",
+                "reward": -0.49344978165938863,
+                "creation_time": 1606809083.433395
             }
         ],
         "final_checkpoint": {
-            "steps": 18256,
+            "steps": 44215,
             "file_path": "results/ppo/Hummingbird.nn",
-            "reward": 0.0,
-            "creation_time": 1606751810.246767
+            "reward": -0.49344978165938863,
+            "creation_time": 1606809083.433395
         }
     },
     "metadata": {
