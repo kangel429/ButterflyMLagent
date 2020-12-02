@@ -16,7 +16,7 @@ public class HummingbirdAgent : Agent
     public GameObject floor;
     public float spawnAreaPadder = 0.1f;
     public GameObject foodPrefab;
-    public CharacterController controller; // set in the inspector.
+   // public CharacterController controller; // set in the inspector.
     public float speed = 0.1f;
     public int wallMask; // wall layer mask. 
     int layerMask;
@@ -66,7 +66,7 @@ public class HummingbirdAgent : Agent
 
     public override void Initialize()
     {
-        this.controller = this.gameObject.GetComponent<CharacterController>();
+       // this.controller = this.gameObject.GetComponent<CharacterController>();
         hummingBirdRigidbody = this.gameObject.GetComponent<Rigidbody>();
         flowerArea = this.gameObject.GetComponentInParent<FlowerArea>();
 
@@ -82,7 +82,7 @@ public class HummingbirdAgent : Agent
         if (trainingMode)
         {
             // reset flowers and one agent only
-            // flowerArea.ResetFlowers();
+            flowerArea.ResetFlowers();
         }
 
         // reset nectar obtained
@@ -121,6 +121,7 @@ public class HummingbirdAgent : Agent
     public override void OnActionReceived(float[] vectorAction)
     {
         if (isFrozen) return;
+
         Vector3 move = new Vector3(vectorAction[0], vectorAction[1], vectorAction[2]);
         // add force
         hummingBirdRigidbody.AddForce(move * moveForce);
@@ -148,11 +149,11 @@ public class HummingbirdAgent : Agent
 
 
         ////////////  군집
-        Vector3 controlSignal = Vector3.zero;
-        controlSignal.x = vectorAction[0];
-        controlSignal.z = vectorAction[1];
+        //Vector3 controlSignal = Vector3.zero;
+        //controlSignal.x = vectorAction[0];
+        //controlSignal.z = vectorAction[1];
 
-        this.controller.Move(Vector3.ClampMagnitude(controlSignal, 1.0f) * speed * Time.deltaTime);
+      //  this.controller.Move(Vector3.ClampMagnitude(move, 1.0f) * speed * Time.deltaTime);
 
         CheckIfCollidingWithFood(); // set reward if the agent hits flower.
 

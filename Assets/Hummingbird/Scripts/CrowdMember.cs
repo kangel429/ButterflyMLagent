@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class CrowdMember : MonoBehaviour
 {
-    public CharacterController[] controller;
+    public Rigidbody[] controller;
     public float cohesionWeight = 0.1f;
     public float alignmentWeight = 0.1f;
     public float avoidanceWeight = 0.1f;
@@ -19,7 +19,7 @@ public class CrowdMember : MonoBehaviour
     public float maxSpeed; // set in the inspector.
     bool init = true;
 
-
+    public float moveForce = 2.0f;
     private void Start()
     {
 
@@ -27,7 +27,7 @@ public class CrowdMember : MonoBehaviour
         GameObject parentObject = this.gameObject.transform.parent.gameObject; // parentObject is CrowdManager.
         crowdManager = parentObject.GetComponent<CrowdManager>();
         agents = crowdManager.agents;
-        controller = new CharacterController[crowdManager.startingCount];
+        controller = new Rigidbody[crowdManager.startingCount];
  
         
         //fibonacciRays = new FibonacciRays();
@@ -189,7 +189,7 @@ public class CrowdMember : MonoBehaviour
         {
             for (int i = 0; i < agents.Count; i++)
             {
-                controller[i] = agents[i].GetComponent<CharacterController>();
+                controller[i] = agents[i].GetComponent<Rigidbody>();
             }
             init = false;
         }
@@ -198,7 +198,8 @@ public class CrowdMember : MonoBehaviour
 
         for (int i = 0; i < agents.Count; i++)
         {
-            this.controller[i].Move(move * Time.deltaTime);
+            this.controller[i].AddForce(move * moveForce);
+            //hummingBirdRigidbody.AddForce(move * moveForce);
         }
     }
     // Update is called once per frame

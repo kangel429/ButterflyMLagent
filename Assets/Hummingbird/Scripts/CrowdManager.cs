@@ -8,8 +8,8 @@ public class CrowdManager : MonoBehaviour
     public int startingCount = 1000;
     public List<GameObject> agents = new List<GameObject>();
     public GameObject agentPrefab;
-    public int agentDensity = 100;
-    public float yPos = 0.1f; 
+    //public int agentDensity = 100;
+    //public float yPos = 0.1f; 
 
     // Start is called before the first frame update
     void Start()
