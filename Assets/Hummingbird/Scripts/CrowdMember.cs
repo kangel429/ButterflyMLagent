@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using System.Linq;
 public class CrowdMember : MonoBehaviour
 {
     public Rigidbody[] controller;
@@ -9,10 +9,13 @@ public class CrowdMember : MonoBehaviour
     public float alignmentWeight = 0.1f;
     public float avoidanceWeight = 0.1f;
     public float obstacleAvoidanceForceWeight = 0.1f;
+    public float seekWeight;
+    public float avoidancWeight;
+
     public CrowdManager crowdManager;
     public List<GameObject> agents;
     public float neighborRadius; // set in the inspector.
-    public float avoidanceRadius = 0.1f; // [m]
+    public float avoidanceRadius = 5f; // [m]
     //public FibonacciRays fibonacciRays;
     int userMask;
     public float movementScalingFactor; // set in the inspector.
@@ -20,6 +23,19 @@ public class CrowdMember : MonoBehaviour
     bool init = true;
 
     public float moveForce = 2.0f;
+
+    int total_Butterfly;
+
+    [Header("Seek")]
+    public float SeekWeight = 0;              // 0
+    [Header("Arrival")]
+    public float ArrivalSlowingDistance =2;  // 2
+    public float ArrivalMaxSpeed = 0.2f;         // 0.2
+
+    public Transform tartget;
+
+    public GameObject predator;
+
     private void Start()
     {
 
@@ -27,14 +43,16 @@ public class CrowdMember : MonoBehaviour
         GameObject parentObject = this.gameObject.transform.parent.gameObject; // parentObject is CrowdManager.
         crowdManager = parentObject.GetComponent<CrowdManager>();
         agents = crowdManager.agents;
-        controller = new Rigidbody[crowdManager.startingCount];
+        total_Butterfly = crowdManager.startingCount;
+        controller = new Rigidbody[total_Butterfly];
  
         
         //fibonacciRays = new FibonacciRays();
     }
     List<GameObject> GetNeighbors(List<GameObject> agents, float neighborRadius) 
     {
-        List<GameObject> neighborAgents = new List<GameObject>(); // 비어있는 리스트 생성. 
+        List<GameObject> neighborAgents = new List<GameObject>(); // 비어있는 리스트 생성.
+
         foreach (GameObject agent in agents)
         {
             if (Vector3.Distance(this.gameObject.transform.position, agent.transform.position) < neighborRadius)
@@ -112,6 +130,7 @@ public class CrowdMember : MonoBehaviour
     Vector3[] directions;
     Vector3[] FibonacciRays()
     {
+        numViewDirections = total_Butterfly;
         directions = new Vector3[numViewDirections];
         float goldenRatio = (1 + Mathf.Sqrt(5)) / 2;
         float angleIncrement = Mathf.PI * 2 * goldenRatio;
@@ -133,7 +152,7 @@ public class CrowdMember : MonoBehaviour
     Vector3 AttractVectorToUsers()
     {
         Vector3[] rayDirections = FibonacciRays();
-        Debug.Log("FibonacciRays  -> rayDirections   :   " + rayDirections[0]+"  "+ rayDirections[1] +"  "+ rayDirections[2] + "  " + rayDirections[3]);
+        //Debug.Log("FibonacciRays  -> rayDirections   :   " + rayDirections[0]+"  "+ rayDirections[1] +"  "+ rayDirections[2] + "  " + rayDirections[3]);
         float raySphereRadius = 0.2f;
         float obstCollisionAvoidDst = 0.2f;
         
@@ -144,7 +163,7 @@ public class CrowdMember : MonoBehaviour
             if (!Physics.SphereCast(ray, raySphereRadius, obstCollisionAvoidDst, userMask))
             // SphereCast(Ray ray, float radius, float maxDistance, int layerMask);
             {
-                Debug.Log(i + " AttractVectorToUsers   :   " + dir);
+                //Debug.Log(i + " AttractVectorToUsers   :   " + dir);
                 return dir;
             }
         }
@@ -155,17 +174,29 @@ public class CrowdMember : MonoBehaviour
     void Move()
     {
         Vector3 move = Vector3.zero;
-        int numOfBehavs = 4;
+        int numOfBehavs = 6;
         Vector3[] behaviors = new Vector3[numOfBehavs];
+
+
+
         behaviors[0] = CohesionVector();
         behaviors[1] = AlignmentVector();
         behaviors[2] = AvoidanceVector();
-        behaviors[3] = AttractVectorToUsers(); // ObstacleAvoidanceForce -> AttractVectorToUsers : 자기랑 가까운 유저에게 접근한다. 
+        behaviors[3] = AttractVectorToUsers(); // ObstacleAvoidanceForce -> AttractVectorToUsers : 자기랑 가까운 유저에게 접근한다.
+        //behaviors[4] = AvoidPredator();
+        //behaviors[5] = Forage();
+        behaviors[4] = Seek(tartget);
+        behaviors[5] = Arrival(tartget, ArrivalSlowingDistance, ArrivalMaxSpeed);
+
+
         float[] weights = new float[numOfBehavs];
         weights[0] = cohesionWeight;
         weights[1] = alignmentWeight;
         weights[2] = avoidanceWeight;
         weights[3] = obstacleAvoidanceForceWeight;
+
+        weights[4] = seekWeight;
+        weights[5] = avoidancWeight;
         for (int i = 0; i < behaviors.Length; i++)
         {
             Vector3 partialMove = behaviors[i] * weights[i];
@@ -194,11 +225,15 @@ public class CrowdMember : MonoBehaviour
             init = false;
         }
 
-        Debug.Log("move : " + move);
+        //Debug.Log("CohesionVector() :  " + CohesionVector() +
+        //    " AlignmentVector() :  " + AlignmentVector() +
+        //    " AvoidanceVector() :  " + AvoidanceVector() +
+        //    " AttractVectorToUsers() :  " + AttractVectorToUsers() +
+        //    " move : " + move);
 
         for (int i = 0; i < agents.Count; i++)
         {
-            this.controller[i].AddForce(move * moveForce);
+            this.controller[i].AddForce(move * moveForce );
             //hummingBirdRigidbody.AddForce(move * moveForce);
         }
     }
@@ -209,4 +244,53 @@ public class CrowdMember : MonoBehaviour
 
         Move();
     }
+    public Vector3 Seek(Transform target)
+    {
+
+        var desiredVelocity = (target.position - transform.position);
+        return desiredVelocity;
+    }
+
+
+    public Vector3 Arrival(Transform target, float slowingDistance, float maxSpeed)
+    {
+        var desiredVelocity = Vector3.zero;
+        if (slowingDistance < 0.0001f) return desiredVelocity;
+
+        var targetOffset = target.position - transform.position;
+        var distance = Vector3.Distance(target.position, transform.position);
+        var rampedSpeed = maxSpeed * (distance / slowingDistance);
+        var clippedSpeed = Mathf.Min(rampedSpeed, maxSpeed);
+        if (distance > 0)
+        {
+            desiredVelocity = (clippedSpeed / distance) * targetOffset;
+        }
+        return desiredVelocity;
+    }
+
+
+
+    ////Predator avoidance and foraging functions -> 이거 안씀
+    public Vector3 AvoidPredator()
+    {
+        if (Vector3.Distance(this.transform.position, predator.transform.position) <=  100)
+        {
+            Debug.Log("AVOID!!!!!!");
+            return this.transform.position - predator.transform.position;
+        }
+
+        else
+        {
+            return Vector3.zero;
+        }
+    }
+
+    public Vector3 Forage()
+    {
+        return (GameObject.FindGameObjectsWithTag("flower_plant")
+          .OrderBy(t => (t.transform.position - this.transform.position).sqrMagnitude).FirstOrDefault()
+          .transform.position - this.transform.position).normalized;
+    }
+
+
 }

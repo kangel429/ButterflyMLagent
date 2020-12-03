@@ -9,6 +9,7 @@ TagManager:
   - boundary
   - Landing
   - butterfly
+  - agent
   layers:
   - Default
   - TransparentFX
