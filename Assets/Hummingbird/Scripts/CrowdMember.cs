@@ -30,7 +30,7 @@ public class CrowdMember : MonoBehaviour
     public float SeekWeight = 0;              // 0
     [Header("Arrival")]
     public float ArrivalSlowingDistance =2;  // 2
-    public float ArrivalMaxSpeed = 0.2f;         // 0.2
+    //public float ArrivalMaxSpeed = 0.2f;         // 0.2
 
     public Transform tartget;
 
@@ -186,7 +186,7 @@ public class CrowdMember : MonoBehaviour
         //behaviors[4] = AvoidPredator();
         //behaviors[5] = Forage();
         behaviors[4] = Seek(tartget);
-        behaviors[5] = Arrival(tartget, ArrivalSlowingDistance, ArrivalMaxSpeed);
+        behaviors[5] = Arrival(tartget, ArrivalSlowingDistance, maxSpeed);
 
 
         float[] weights = new float[numOfBehavs];
@@ -271,26 +271,26 @@ public class CrowdMember : MonoBehaviour
 
 
     ////Predator avoidance and foraging functions -> 이거 안씀
-    public Vector3 AvoidPredator()
-    {
-        if (Vector3.Distance(this.transform.position, predator.transform.position) <=  100)
-        {
-            Debug.Log("AVOID!!!!!!");
-            return this.transform.position - predator.transform.position;
-        }
+    //public Vector3 AvoidPredator()
+    //{
+    //    if (Vector3.Distance(this.transform.position, predator.transform.position) <=  100)
+    //    {
+    //        Debug.Log("AVOID!!!!!!");
+    //        return this.transform.position - predator.transform.position;
+    //    }
 
-        else
-        {
-            return Vector3.zero;
-        }
-    }
+    //    else
+    //    {
+    //        return Vector3.zero;
+    //    }
+    //}
 
-    public Vector3 Forage()
-    {
-        return (GameObject.FindGameObjectsWithTag("flower_plant")
-          .OrderBy(t => (t.transform.position - this.transform.position).sqrMagnitude).FirstOrDefault()
-          .transform.position - this.transform.position).normalized;
-    }
+    //public Vector3 Forage()
+    //{
+    //    return (GameObject.FindGameObjectsWithTag("flower_plant")
+    //      .OrderBy(t => (t.transform.position - this.transform.position).sqrMagnitude).FirstOrDefault()
+    //      .transform.position - this.transform.position).normalized;
+    //}
 
 
 }
