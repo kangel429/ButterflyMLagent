@@ -22,7 +22,7 @@ public class HummingbirdAgent : Agent
     int layerMask;
 
     [Tooltip("Force to apply when moving")]
-    public float moveForce = 2f;
+    public float moveForce = 5f;
 
     [Tooltip("Speed to pitch up or down")]
     public float pitchSpeed = 100f;
@@ -52,6 +52,9 @@ public class HummingbirdAgent : Agent
     /// nectar obtained in the episode
     /// </summary>
     public float NectarObtained { get; private set; }
+
+
+    float diffrenceDist_Hand_butterfly;
 
     /// <summary>
     /// Initialize the agent
@@ -163,8 +166,9 @@ public class HummingbirdAgent : Agent
             SetReward(-0.5f);
             EndEpisode();
         }
+        diffrenceDist_Hand_butterfly = Vector3.Distance(this.transform.position, humanHandAvatar.transform.position);
 
-        if (Vector3.Distance(this.transform.position, humanHandAvatar.transform.position) <= 0.65f) // predator -> humanHandAvatar.humanAvatar
+        if (diffrenceDist_Hand_butterfly <= 0.65f) // predator -> humanHandAvatar.humanAvatar
         {
             Debug.Log("Distance - ( agent and hand )  :"+Vector3.Distance(this.transform.position, humanHandAvatar.transform.position));
             Debug.Log("Follow hand:  " + transform.name);
@@ -191,7 +195,7 @@ public class HummingbirdAgent : Agent
         if (hitColliders.Length != 0)
         {
             Debug.Log("eatting flower");
-            SetReward(0.5f);
+            AddReward(0.1f);
 
             for (int i = 0; i < hitColliders.Length; i++)
             {
@@ -232,39 +236,39 @@ public class HummingbirdAgent : Agent
     /// <param name="sensor">The vector sensor</param>
     public override void CollectObservations(VectorSensor sensor)
     {
-        if (nearestFlower == null)
-        {
-            sensor.AddObservation(new float[10]);
-            return;
-        }
+        //if (nearestFlower == null)
+        //{
+        //    sensor.AddObservation(new float[10]);
+        //    return;
+        //}
 
         // Observe the local rotation
-        sensor.AddObservation(transform.localRotation.normalized);//3
-        Vector3 toFlower = nearestFlower.FlowerCenterVector - beakTip.position;
-        // pointing to nearest flower
-        sensor.AddObservation(toFlower.normalized);//3
-        // dot product observation - beak tip in front of flower?
-        // +1 -> infront, -1 -> behind
-        sensor.AddObservation(
-            Vector3.Dot(toFlower.normalized, -nearestFlower.FlowerUpVector.normalized));//1
-        // beak tip point to flower
-        sensor.AddObservation(
-            Vector3.Dot(beakTip.forward.normalized, -nearestFlower.FlowerUpVector.normalized));//1
-        // relative distance from beek tip to flower
-        sensor.AddObservation(toFlower.magnitude / FlowerArea.AreaDiameter);//1
+        //sensor.AddObservation(transform.localRotation.normalized);//3
+        //Vector3 toFlower = nearestFlower.FlowerCenterVector - beakTip.position;
+        //// pointing to nearest flower
+        //sensor.AddObservation(toFlower.normalized);//3
+        //// dot product observation - beak tip in front of flower?
+        //// +1 -> infront, -1 -> behind
+        //sensor.AddObservation(
+        //    Vector3.Dot(toFlower.normalized, -nearestFlower.FlowerUpVector.normalized));//1
+        //// beak tip point to flower
+        //sensor.AddObservation(
+        //    Vector3.Dot(beakTip.forward.normalized, -nearestFlower.FlowerUpVector.normalized));//1
+        //// relative distance from beek tip to flower
+        //sensor.AddObservation(toFlower.magnitude / FlowerArea.AreaDiameter);//1
         // 10 total observations
 
         sensor.AddObservation(this.transform.position.normalized);//3
-        sensor.AddObservation(this.hummingBirdRigidbody.velocity.x);
-        sensor.AddObservation(this.hummingBirdRigidbody.velocity.z);
+        sensor.AddObservation(this.hummingBirdRigidbody.velocity.normalized);//3
+
         myLastPosition = this.transform.position;
         sensor.AddObservation(this.transform.forward.normalized); //3
 
         sensor.AddObservation(humanHandAvatar.transform.position.normalized);//3
-        sensor.AddObservation(humanHandAvatar.velocity.x);//1
-        sensor.AddObservation(humanHandAvatar.velocity.z);//1
+        //sensor.AddObservation(humanHandAvatar.velocity.x);//1
+        //sensor.AddObservation(humanHandAvatar.velocity.z);//1
         sensor.AddObservation(Vector3.Distance(this.transform.position, humanHandAvatar.transform.position));//1
-        sensor.AddObservation(humanHandAvatar.transform.forward.normalized);//3
+        //sensor.AddObservation(humanHandAvatar.transform.forward.normalized);//3
     }
 
     // boids 
@@ -496,12 +500,20 @@ public class HummingbirdAgent : Agent
     /// <summary>
     /// call every frame
     /// </summary>
+    float diffrenceDist_Flower_butterfly;
     private void Update()
     {
-        // Beektip to flower-line debug
-        if (nearestFlower != null)
+        diffrenceDist_Flower_butterfly = Vector3.Distance(beakTip.position, nearestFlower.FlowerCenterVector);
+        if (diffrenceDist_Hand_butterfly < diffrenceDist_Flower_butterfly)
         {
-            Debug.DrawLine(beakTip.position, nearestFlower.FlowerCenterVector, Color.green);
+            Debug.DrawLine(beakTip.position, humanHandAvatar.transform.position, Color.green);
+        }
+        else
+        {
+            if (nearestFlower != null)
+            {
+                Debug.DrawLine(beakTip.position, nearestFlower.FlowerCenterVector, Color.green);
+            }
         }
     }
     /// <summary>

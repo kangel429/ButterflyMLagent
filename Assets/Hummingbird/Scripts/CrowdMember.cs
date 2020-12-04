@@ -4,7 +4,7 @@ using UnityEngine;
 using System.Linq;
 public class CrowdMember : MonoBehaviour
 {
-    public Rigidbody[] controller;
+    public Rigidbody controller;
     public float cohesionWeight = 0.1f;
     public float alignmentWeight = 0.1f;
     public float avoidanceWeight = 0.1f;
@@ -44,9 +44,9 @@ public class CrowdMember : MonoBehaviour
         crowdManager = parentObject.GetComponent<CrowdManager>();
         agents = crowdManager.agents;
         total_Butterfly = crowdManager.startingCount;
-        controller = new Rigidbody[total_Butterfly];
- 
-        
+        controller = this.gameObject.transform.GetComponent<Rigidbody>();
+
+
         //fibonacciRays = new FibonacciRays();
     }
     List<GameObject> GetNeighbors(List<GameObject> agents, float neighborRadius) 
@@ -216,14 +216,7 @@ public class CrowdMember : MonoBehaviour
             move = move.normalized * maxSpeed;
         }
 
-        if(init)
-        {
-            for (int i = 0; i < agents.Count; i++)
-            {
-                controller[i] = agents[i].GetComponent<Rigidbody>();
-            }
-            init = false;
-        }
+
 
         //Debug.Log("CohesionVector() :  " + CohesionVector() +
         //    " AlignmentVector() :  " + AlignmentVector() +
@@ -231,11 +224,8 @@ public class CrowdMember : MonoBehaviour
         //    " AttractVectorToUsers() :  " + AttractVectorToUsers() +
         //    " move : " + move);
 
-        for (int i = 0; i < agents.Count; i++)
-        {
-            this.controller[i].AddForce(move * moveForce );
-            //hummingBirdRigidbody.AddForce(move * moveForce);
-        }
+        this.controller.AddForce(move * moveForce);
+
     }
     // Update is called once per frame
 
