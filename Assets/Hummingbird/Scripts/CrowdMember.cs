@@ -13,18 +13,16 @@ public class CrowdMember : MonoBehaviour
     public float avoidancWeight;
 
     public CrowdManager crowdManager;
-    public List<GameObject> agents;
+    public List<GameObject> agents = new List<GameObject>();
     public float neighborRadius; // set in the inspector.
     public float avoidanceRadius = 5f; // [m]
     //public FibonacciRays fibonacciRays;
     int userMask;
     public float movementScalingFactor; // set in the inspector.
     public float maxSpeed; // set in the inspector.
-    bool init = true;
 
     public float moveForce = 2.0f;
 
-    int total_Butterfly;
 
     [Header("Seek")]
     public float SeekWeight = 0;              // 0
@@ -34,16 +32,15 @@ public class CrowdMember : MonoBehaviour
 
     public Transform tartget;
 
-    public GameObject predator;
+    //public GameObject predator;
 
     private void Start()
     {
 
         userMask = 1 << LayerMask.NameToLayer("user");
         GameObject parentObject = this.gameObject.transform.parent.gameObject; // parentObject is CrowdManager.
-        crowdManager = parentObject.GetComponent<CrowdManager>();
-        agents = crowdManager.agents;
-        total_Butterfly = crowdManager.startingCount;
+        agents = crowdManager.crowds;
+
         controller = this.gameObject.transform.GetComponent<Rigidbody>();
 
 
@@ -130,7 +127,7 @@ public class CrowdMember : MonoBehaviour
     Vector3[] directions;
     Vector3[] FibonacciRays()
     {
-        numViewDirections = total_Butterfly;
+        //numViewDirections = total_Butterfly;
         directions = new Vector3[numViewDirections];
         float goldenRatio = (1 + Mathf.Sqrt(5)) / 2;
         float angleIncrement = Mathf.PI * 2 * goldenRatio;
@@ -142,7 +139,7 @@ public class CrowdMember : MonoBehaviour
             float azimuth = angleIncrement * i;
 
             float x = Mathf.Sin(inclination) * Mathf.Cos(azimuth);
-            float y = 0;
+            float y = Mathf.Sin(inclination) * Mathf.Sin(azimuth); ;
             float z = Mathf.Cos(inclination);
             directions[i] = new Vector3(x, y, z);
         }
@@ -281,6 +278,6 @@ public class CrowdMember : MonoBehaviour
     //      .OrderBy(t => (t.transform.position - this.transform.position).sqrMagnitude).FirstOrDefault()
     //      .transform.position - this.transform.position).normalized;
     //}
-
+ 
 
 }

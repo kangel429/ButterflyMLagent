@@ -6,23 +6,10 @@ using Unity.MLAgents.Sensors;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class HummingbirdAgent : Agent 
+public class HummingbirdAgent : Agent
 {
-    // boids
-    public Rigidbody hummingBirdRigidbody; // set in the inspector.  
-    public HumanHandAvatar humanHandAvatar; // set in the inspector.  
-    public Vector3 myLastPosition;
-    public Collider floorCol;
-    public GameObject floor;
-    public float spawnAreaPadder = 0.1f;
-    public GameObject foodPrefab;
-   // public CharacterController controller; // set in the inspector.
-    public float speed = 0.1f;
-    public int wallMask; // wall layer mask. 
-    int layerMask;
-
     [Tooltip("Force to apply when moving")]
-    public float moveForce = 5f;
+    public float moveForce = 2f;
 
     [Tooltip("Speed to pitch up or down")]
     public float pitchSpeed = 100f;
@@ -39,8 +26,8 @@ public class HummingbirdAgent : Agent
     [Tooltip("Train or gameplay mode")]
     public bool trainingMode;
 
-    //private Rigidbody rigidbody;
-    public FlowerArea flowerArea;
+    new private Rigidbody rigidbody;
+    private FlowerArea flowerArea;
     private Flower nearestFlower;
     private float smoothPitchChange = 0f;
     private float smoothYawChange = 0f;
@@ -48,30 +35,26 @@ public class HummingbirdAgent : Agent
     private const float BeakTipRadius = 0.008f;
     private bool isFrozen = false;
 
+
+
+
+    public GameObject humanHandAvatar; //owner of this agent
+   
+
     /// <summary>
     /// nectar obtained in the episode
     /// </summary>
     public float NectarObtained { get; private set; }
 
-
-    float diffrenceDist_Hand_butterfly;
-
     /// <summary>
     /// Initialize the agent
     /// </summary>
-    /// 
-
-    private void Start()
-    {
-        layerMask = 1 << LayerMask.NameToLayer("flower");
-        wallMask = 1 << LayerMask.NameToLayer("wall");
-    }
-
     public override void Initialize()
     {
-       // this.controller = this.gameObject.GetComponent<CharacterController>();
-        hummingBirdRigidbody = this.gameObject.GetComponent<Rigidbody>();
-        flowerArea = this.gameObject.GetComponentInParent<FlowerArea>();
+        rigidbody = GetComponent<Rigidbody>();
+        flowerArea = GetComponentInParent<FlowerArea>();
+
+
 
         // if not training mode, no max steps, play forever
         if (!trainingMode)
@@ -92,8 +75,8 @@ public class HummingbirdAgent : Agent
         NectarObtained = 0f;
 
         // zero out velocities for new episode
-        hummingBirdRigidbody.velocity = Vector3.zero;
-        hummingBirdRigidbody.angularVelocity = Vector3.zero;
+        rigidbody.velocity = Vector3.zero;
+        rigidbody.angularVelocity = Vector3.zero;
 
         // default to spawning i.f.o a flower
         bool inFrontOfFlower = true;
@@ -108,9 +91,17 @@ public class HummingbirdAgent : Agent
 
         // Recalculate nearest flower
         UpdateNearestFlower();
+        if (humanHandAvatar.transform.position.y < 1f)
+        {
+            humanHandAvatar.SetActive(false);
+        }
+        else
+        {
+            humanHandAvatar.SetActive(true);
+
+        }
 
     }
-
 
     /// <summary>
     /// Called when action is received from player or neural-net
@@ -124,10 +115,9 @@ public class HummingbirdAgent : Agent
     public override void OnActionReceived(float[] vectorAction)
     {
         if (isFrozen) return;
-
         Vector3 move = new Vector3(vectorAction[0], vectorAction[1], vectorAction[2]);
         // add force
-        hummingBirdRigidbody.AddForce(move * moveForce);
+        rigidbody.AddForce(move * moveForce);
         // rotation
         // current rotation
         Vector3 rotationVector = transform.rotation.eulerAngles;
@@ -150,85 +140,7 @@ public class HummingbirdAgent : Agent
         // apply rotation
         transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
 
-
-        ////////////  군집
-        //Vector3 controlSignal = Vector3.zero;
-        //controlSignal.x = vectorAction[0];
-        //controlSignal.z = vectorAction[1];
-
-      //  this.controller.Move(Vector3.ClampMagnitude(move, 1.0f) * speed * Time.deltaTime);
-
-        CheckIfCollidingWithFood(); // set reward if the agent hits flower.
-
-        if (Physics.CheckSphere(this.gameObject.transform.position, this.gameObject.GetComponent<SphereCollider>().radius + 0.1f, wallMask))
-        {
-            Debug.Log("Crush rock");
-            SetReward(-0.5f);
-            EndEpisode();
-        }
-        diffrenceDist_Hand_butterfly = Vector3.Distance(this.transform.position, humanHandAvatar.transform.position);
-
-        if (diffrenceDist_Hand_butterfly <= 0.65f) // predator -> humanHandAvatar.humanAvatar
-        {
-            Debug.Log("Distance - ( agent and hand )  :"+Vector3.Distance(this.transform.position, humanHandAvatar.transform.position));
-            Debug.Log("Follow hand:  " + transform.name);
-            SetReward(1.0f);
-            EndEpisode();
-        }
     }
-
-    // boids 
-
-    // Food positioning function
-    Vector3 GetRandomPos()
-    {
-        Vector3 tmpVector = new Vector3(Random.Range(floorCol.bounds.min.x + spawnAreaPadder, floorCol.bounds.max.x - spawnAreaPadder),
-            floor.transform.position.y + foodPrefab.transform.localScale.y / 2,
-            Random.Range(floorCol.bounds.min.z + spawnAreaPadder, floorCol.bounds.max.z - spawnAreaPadder));
-
-        return tmpVector;
-    }
-    // Agent food collision function
-    void CheckIfCollidingWithFood()
-    {
-        Collider[] hitColliders = Physics.OverlapSphere(this.transform.position, 0.4f, layerMask); // foodMask -> flower
-        if (hitColliders.Length != 0)
-        {
-            Debug.Log("eatting flower");
-            AddReward(0.1f);
-
-            for (int i = 0; i < hitColliders.Length; i++)
-            {
-                hitColliders[i].gameObject.transform.position = GetRandomPos();
-            }
-        }
-    }
-    // Agent Action function 
-    //public override void OnActionReceived(float[] vectorAction)
-    //{
-    //    Vector3 controlSignal = Vector3.zero;
-    //    controlSignal.x = vectorAction[0];
-    //    controlSignal.z = vectorAction[1];
-
-    //    this.controller.Move(Vector3.ClampMagnitude(controlSignal, 1.0f) * speed * Time.deltaTime);
-
-    //    CheckIfCollidingWithFood(); // set reward if the agent hits flower.
-        
-    //    if (Physics.CheckSphere(this.gameObject.transform.position, this.gameObject.GetComponent<SphereCollider>().radius + 0.1f, wallMask))
-    //    {
-    //        SetReward(-0.5f);
-    //        EndEpisode();
-    //    }
-
-    //    if (Vector3.Distance(this.transform.position, humanHandAvatar.transform.position) <= 0.65f) // predator -> humanHandAvatar.humanAvatar
-    //    {
-    //        SetReward(1.0f);
-    //        EndEpisode();
-    //    }
-
-    //   //Monitor.Log("reward", GetCumulativeReward());
-    //    // FellOffThePlatform();
-    //}
 
     /// <summary>
     /// Collect vecotr observations from the environment
@@ -236,56 +148,60 @@ public class HummingbirdAgent : Agent
     /// <param name="sensor">The vector sensor</param>
     public override void CollectObservations(VectorSensor sensor)
     {
-        //if (nearestFlower == null)
-        //{
-        //    sensor.AddObservation(new float[10]);
-        //    return;
-        //}
 
-        // Observe the local rotation
-        //sensor.AddObservation(transform.localRotation.normalized);//3
-        //Vector3 toFlower = nearestFlower.FlowerCenterVector - beakTip.position;
-        //// pointing to nearest flower
-        //sensor.AddObservation(toFlower.normalized);//3
-        //// dot product observation - beak tip in front of flower?
-        //// +1 -> infront, -1 -> behind
-        //sensor.AddObservation(
-        //    Vector3.Dot(toFlower.normalized, -nearestFlower.FlowerUpVector.normalized));//1
-        //// beak tip point to flower
-        //sensor.AddObservation(
-        //    Vector3.Dot(beakTip.forward.normalized, -nearestFlower.FlowerUpVector.normalized));//1
-        //// relative distance from beek tip to flower
-        //sensor.AddObservation(toFlower.magnitude / FlowerArea.AreaDiameter);//1
-        // 10 total observations
 
-        sensor.AddObservation(this.transform.position.normalized);//3
-        sensor.AddObservation(this.hummingBirdRigidbody.velocity.normalized);//3
 
-        myLastPosition = this.transform.position;
-        sensor.AddObservation(this.transform.forward.normalized); //3
+        if (humanHandAvatar != null && humanHandAvatar.activeSelf == true)
+        {
+            sensor.AddObservation(this.gameObject.transform.localRotation.normalized);
+            Vector3 toHand = humanHandAvatar.transform.position - beakTip.position;
+            // pointing to nearest flower 3
+            sensor.AddObservation(toHand.normalized);
+            // dot product observation - beak tip in front of flower?
+            // +1 -> infront, -1 -> behind 1
+            sensor.AddObservation(
+                Vector3.Dot(toHand.normalized, -humanHandAvatar.transform.up.normalized));
+            // beak tip point to flower 1
+            sensor.AddObservation(
+                Vector3.Dot(beakTip.forward.normalized, -humanHandAvatar.transform.up.normalized));
+            // relative distance from beek tip to flower 1
+            sensor.AddObservation(toHand.magnitude / FlowerArea.AreaDiameter);
 
-        sensor.AddObservation(humanHandAvatar.transform.position.normalized);//3
-        //sensor.AddObservation(humanHandAvatar.velocity.x);//1
-        //sensor.AddObservation(humanHandAvatar.velocity.z);//1
-        sensor.AddObservation(Vector3.Distance(this.transform.position, humanHandAvatar.transform.position));//1
-        //sensor.AddObservation(humanHandAvatar.transform.forward.normalized);//3
-    }
+        }
+        else
+        {
+            sensor.AddObservation(new float[10]);
+        }
 
-    // boids 
-    //public override void CollectObservations(VectorSensor sensor)
-    //{
-    //    sensor.AddObservation(this.transform.position);
-    //    sensor.AddObservation(this.rigidbody.velocity.x);
-    //    sensor.AddObservation(this.rigidbody.velocity.z);
-    //    myLastPosition = this.transform.position;
-    //    sensor.AddObservation(this.transform.forward.normalized);
 
-    //    sensor.AddObservation(humanHandAvatar.transform.position);
-    //    sensor.AddObservation(humanHandAvatar.velocity.x);
-    //    sensor.AddObservation(humanHandAvatar.velocity.z);
-    //    sensor.AddObservation(Vector3.Distance(this.transform.position, humanHandAvatar.transform.position));
-    //    sensor.AddObservation(humanHandAvatar.transform.forward.normalized);
-    //}
+
+        if (nearestFlower != null)
+        {
+            // Observe the local rotation  4
+            sensor.AddObservation(this.gameObject.transform.localRotation.normalized);
+            Vector3 toFlower = nearestFlower.FlowerCenterVector - beakTip.position;
+            // pointing to nearest flower  3
+            sensor.AddObservation(toFlower.normalized);
+            // dot product observation - beak tip in front of flower?
+            // +1 -> infront, -1 -> behind  1
+            sensor.AddObservation(
+                Vector3.Dot(toFlower.normalized, -nearestFlower.FlowerUpVector.normalized));
+            // beak tip point to flower  1
+            sensor.AddObservation(
+                Vector3.Dot(beakTip.forward.normalized, -nearestFlower.FlowerUpVector.normalized));
+            // relative distance from beek tip to flower  1
+            sensor.AddObservation(toFlower.magnitude / FlowerArea.AreaDiameter);
+            // 10 total observations
+        }
+        else
+        {
+            sensor.AddObservation(new float[10]);
+
+        }
+
+
+    }// End public override void CollectObservations(VectorSensor sensor)
+
 
     /// <summary>
     /// no neural net, use it
@@ -324,6 +240,8 @@ public class HummingbirdAgent : Agent
         actionsOut[2] = combined.z;
         actionsOut[3] = pitch;
         actionsOut[4] = yaw;
+
+
     }
     /// <summary>
     /// prevent from moving
@@ -332,7 +250,7 @@ public class HummingbirdAgent : Agent
     {
         Debug.Assert(trainingMode == false, "Freeze/unfreeze not supported in training");
         isFrozen = true;
-        hummingBirdRigidbody.Sleep();
+        rigidbody.Sleep();
     }
     /// <summary>
     /// resume movement
@@ -341,7 +259,7 @@ public class HummingbirdAgent : Agent
     {
         Debug.Assert(trainingMode == false, "Freeze/unfreeze not supported in training");
         isFrozen = false;
-        hummingBirdRigidbody.WakeUp();
+        rigidbody.WakeUp();
     }
 
 
@@ -400,6 +318,8 @@ public class HummingbirdAgent : Agent
         // set position, rotation
         transform.position = potentialPosition;
         transform.rotation = potentialRotation;
+        Vector3 RandomV = new Vector3(Random.Range(-1,2), Random.Range(-1, 2) , Random.Range(-1, 2));
+        humanHandAvatar.transform.position = potentialPosition + RandomV;
     }
 
 
@@ -467,8 +387,8 @@ public class HummingbirdAgent : Agent
                 NectarObtained += nectarReceived;
                 if (trainingMode)
                 {
-                    Debug.Log("Goal");
                     // calculate reward for getting nectar
+                    // Mathf.Clamp01 -> Clamps value between 0 and 1 and returns value
                     float bonus = 0.02f * Mathf.Clamp01(
                         Vector3.Dot(transform.forward.normalized,
                             -nearestFlower.FlowerUpVector.normalized));
@@ -490,9 +410,25 @@ public class HummingbirdAgent : Agent
     /// <param name="collision">collision info</param>
     private void OnCollisionEnter(Collision collision)
     {
+        if (trainingMode && collision.collider.CompareTag("hand")) //add myung jin
+        {
+            // calculate reward for getting nectar
+            // Mathf.Clamp01 -> Clamps value between 0 and 1 and returns value
+            float bonus = 0.02f * Mathf.Clamp01(
+                Vector3.Dot(transform.forward.normalized,
+                    -nearestFlower.FlowerUpVector.normalized));
+            AddReward(0.01f + bonus); // experiment, balance reward
+            
+            if(GetCumulativeReward()>3)
+            {
+                EndEpisode();
+            }
+
+
+            Debug.Log("crush Hand  :  " + GetCumulativeReward());
+        }
         if (trainingMode && collision.collider.CompareTag("boundary"))
         {
-            Debug.Log("crush boundary");
             // boundary negative reward
             AddReward(-0.5f); // discourage getting outside
         }
@@ -500,20 +436,16 @@ public class HummingbirdAgent : Agent
     /// <summary>
     /// call every frame
     /// </summary>
-    float diffrenceDist_Flower_butterfly;
     private void Update()
     {
-        diffrenceDist_Flower_butterfly = Vector3.Distance(beakTip.position, nearestFlower.FlowerCenterVector);
-        if (diffrenceDist_Hand_butterfly < diffrenceDist_Flower_butterfly)
+        if(humanHandAvatar.activeSelf == true && humanHandAvatar != null)
         {
-            Debug.DrawLine(beakTip.position, humanHandAvatar.transform.position, Color.green);
+            Debug.DrawLine(beakTip.position, humanHandAvatar.transform.position, Color.blue);
         }
-        else
+        // Beektip to flower-line debug
+        if (nearestFlower != null)
         {
-            if (nearestFlower != null)
-            {
-                Debug.DrawLine(beakTip.position, nearestFlower.FlowerCenterVector, Color.green);
-            }
+            Debug.DrawLine(beakTip.position, nearestFlower.FlowerCenterVector, Color.green);
         }
     }
     /// <summary>
@@ -521,10 +453,43 @@ public class HummingbirdAgent : Agent
     /// </summary>
     private void FixedUpdate()
     {
+
         // avoid stolen nearest flower
         if (nearestFlower != null && !nearestFlower.HasNectar)
         {
             UpdateNearestFlower();
         }
     }
+
+    //float shortDis;
+    //GameObject m_NearestHandavatar;
+    //public Collider[] hitColliders;
+    //public void FindNearestHandavAvatarObj()
+    //{
+    //    if (hitColliders.Length != 0)
+    //    {
+    //        m_NearestHandavatar = humanHandAvatar.gameObject;
+    //        shortDis = Vector3.Distance(this.gameObject.transform.position, m_NearestHandavatar.transform.position);
+            
+    //        for (int i = 0; i < hitColliders.Length; i++)
+    //        {
+    //            Collider found = hitColliders[i];
+    //            float Distance = Vector3.Distance(gameObject.transform.position, found.transform.position);
+
+    //            if (Distance < shortDis) // 위에서 잡은 기준으로 거리 재기
+    //            {
+    //                m_NearestHandavatar = found.gameObject;
+
+    //                shortDis = Distance;
+    //            }
+
+
+    //        }
+
+    //       // Debug.Log("hitColliders : " + m_NearestHandavatar.name);
+
+    //    }
+    //    //return nearestObject;
+
+    //}
 }
