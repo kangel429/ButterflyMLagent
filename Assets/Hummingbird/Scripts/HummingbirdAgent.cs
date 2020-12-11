@@ -64,8 +64,8 @@ public class HummingbirdAgent : Agent
 
     public override void Initialize()
     {
-        rigidbody = GetComponent<Rigidbody>();
-        flowerArea = GetComponentInParent<FlowerArea>();
+        rigidbody = this.gameObject.GetComponent<Rigidbody>();
+        flowerArea = this.gameObject.GetComponentInParent<FlowerArea>();
 
 
 
@@ -76,7 +76,7 @@ public class HummingbirdAgent : Agent
         }
     }
 
-    public override void OnEpisodeBegin()
+    public override void OnEpisodeBegin() //정책망에 weight데이터는 random vector다. action -> observation
     {
         if (trainingMode)
         {
@@ -131,8 +131,8 @@ public class HummingbirdAgent : Agent
             if (random < 0.5f)
             {
                 Vector3 toHand = (humanHandAvatar.transform.position - this.gameObject.transform.position).normalized;
-                Quaternion r = Quaternion.LookRotation(toHand);
-                transform.rotation = r;
+                Quaternion r = Quaternion.LookRotation(toHand); // 꽃과 동일한 로직이 아니다.
+                this.gameObject.transform.rotation = r;
             }
 
         }
@@ -152,7 +152,7 @@ public class HummingbirdAgent : Agent
     /// index 4: yaw angle (+1 right, -1 left) 
     /// </summary>
     /// <param name="vectorAction">The actions to take</param>
-    public override void OnActionReceived(float[] vectorAction)
+    public override void OnActionReceived(float[] vectorAction) //policy  정책망으로부터 
     {
         if (isFrozen) return;
         Vector3 move = new Vector3(vectorAction[0], vectorAction[1], vectorAction[2]);
@@ -187,7 +187,7 @@ public class HummingbirdAgent : Agent
     /// </summary>
     /// <param name="sensor">The vector sensor</param>
     public override void CollectObservations(VectorSensor sensor)
-    {
+    { // 여기서 수집한 observation vector는 다음 action값을 수집할 때 다음 input값으로 선택된다.
         //Debug.Log(" UserExist  " + mUserExist);
         // Debug.Log("In CollectObservations ");
         sensor.AddObservation(mUserExist);//1
@@ -460,12 +460,12 @@ public class HummingbirdAgent : Agent
             numberOfBadSteps++;
             AddReward(-0.01f);
 
-            if (numberOfBadSteps > this.MaxStep * 0.7f)
-            {
-                Debug.Log("Failed the Goal");
-                SetReward(-1.0f);  // agent has failed to chieve the goal
-                EndEpisode();
-            }
+            //if (numberOfBadSteps > this.MaxStep * 0.7f)
+            //{
+            //    Debug.Log("Failed the Goal");
+            //    SetReward(-1.0f);  // agent has failed to chieve the goal
+            //    EndEpisode();
+            //}
         }
     }
     ///
@@ -483,14 +483,14 @@ public class HummingbirdAgent : Agent
             numberOfGoodSteps++;
 
 
-            //check If Number Of GoodSteps is greater than 70% max of the episode
-            if (trainingMode && numberOfGoodSteps > this.MaxStep * 0.55f)
-            {
+            ////check If Number Of GoodSteps is greater than 70% max of the episode
+            //if (trainingMode && numberOfGoodSteps > this.MaxStep * 0.55f)
+            //{
 
-                Debug.Log("hand - Sucess the Goal");
-                SetReward(1.0f);
-                EndEpisode();
-            }
+            //    Debug.Log("hand - Sucess the Goal");
+            //    SetReward(1.0f);
+            //    EndEpisode();
+            //}
 
         }
 
@@ -514,24 +514,24 @@ public class HummingbirdAgent : Agent
                 //float bonus = 0.02f * Mathf.Clamp01(
                 //    Vector3.Dot(transform.forward.normalized,
                 //        -nearestFlower.FlowerUpVector.normalized));
+                AddReward(0.0015f);
+                //if (!flower.HasNectar)
+                //{
+                //    AddReward(0.02f); // experiment, balance reward
+                //}
+                //else
+                //{
+                //    AddReward(0.0015f);
+                //}
 
-                if (!flower.HasNectar)
-                {
-                    AddReward(0.02f); // experiment, balance reward
-                }
-                else
-                {
-                    AddReward(0.0015f);
-                }
+                //numberOfGoodSteps++;
+                //if (numberOfGoodSteps > this.MaxStep * 0.25f)
+                //{
 
-                numberOfGoodSteps++;
-                if (numberOfGoodSteps > this.MaxStep * 0.25f)
-                {
-
-                    Debug.Log("Sucess eatting to flower");
-                    SetReward(1);
-                    EndEpisode();
-                }
+                //    Debug.Log("Sucess eatting to flower");
+                //    SetReward(1);
+                //    EndEpisode();
+                //}
 
 
 
@@ -661,7 +661,7 @@ public class HummingbirdAgent : Agent
         float distF = Vector3.Distance(targetObj.transform.position, this.gameObject.transform.position);
 
 
-        if (distF < nearRadius)
+        if (distF < nearRadius) //접근했을 때 reward는를 trigger함수에서 적용했음
         {
             return;
         }
@@ -693,31 +693,31 @@ public class HummingbirdAgent : Agent
 
 
 
-        if (AngleBetweenDegree < mGoodAngelThreshold && distF < 1f)
+        if (AngleBetweenDegree < mGoodAngelThreshold )
         {
             Debug.Log("hand - Good try   ");
             AddReward(0.001f);
 
-            agentNottInGoalHandTime++;
-            if (agentNottInGoalHandTime > this.MaxStep * 0.3f)
-            {
+            //agentNottInGoalHandTime++;
+            //if (agentNottInGoalHandTime > this.MaxStep * 0.3f)
+            //{
 
-                Debug.Log("hand -Failed... only good try");
-                SetReward(-1.0f);
-                EndEpisode();
-            }
+            //    Debug.Log("hand -Failed... only good try");
+            //    SetReward(-1.0f);
+            //    EndEpisode();
+            //}
         }
-        else if (AngleBetweenDegree > mBadAngelThreshold || distF > 3f)
+        else if (AngleBetweenDegree > mBadAngelThreshold )
         {
             Debug.Log("hand - bad try   ");
             AddReward(-0.001f);
-            numberOfBadSteps++;
-            if (numberOfBadSteps > this.MaxStep * 0.7f)
-            {
-                Debug.Log("hand - Failed... do nothing ");
-                SetReward(-1.0f);  // agent has failed to chieve the goal
-                EndEpisode();
-            }
+            //numberOfBadSteps++;
+            //if (numberOfBadSteps > this.MaxStep * 0.7f)
+            //{
+            //    Debug.Log("hand - Failed... do nothing ");
+            //    SetReward(-1.0f);  // agent has failed to chieve the goal
+            //    EndEpisode();
+            //}
 
         }//otherwise the situation is need bad or good. increment no reward.
 
@@ -779,26 +779,26 @@ public class HummingbirdAgent : Agent
             Debug.Log("Flower - Good try  ");
             AddReward(0.001f);
 
-            agentNottInGoalFowerTime++;
-            if (agentNottInGoalFowerTime > this.MaxStep * 0.3f)
-            {
+            //agentNottInGoalFowerTime++;
+            //if (agentNottInGoalFowerTime > this.MaxStep * 0.3f)
+            //{
 
-                Debug.Log("Flower -Failed... only good try");
-                SetReward(-1.0f);
-                EndEpisode();
-            }
+            //    Debug.Log("Flower -Failed... only good try");
+            //    SetReward(-1.0f);
+            //    EndEpisode();
+            //}
         }
         if (AngleBetweenDegree > 45 || distF > 3f)
         {
             Debug.Log("Flower - bad try   ");
             AddReward(-0.001f);
-            numberOfBadSteps++;
-            if (numberOfBadSteps > this.MaxStep * 0.7f)
-            {
-                Debug.Log("Flower -Failed... do nothing");
-                SetReward(-1.0f);  // agent has failed to chieve the goal
-                EndEpisode();
-            }
+            //numberOfBadSteps++;
+            //if (numberOfBadSteps > this.MaxStep * 0.7f)
+            //{
+            //    Debug.Log("Flower -Failed... do nothing");
+            //    SetReward(-1.0f);  // agent has failed to chieve the goal
+            //    EndEpisode();
+            //}
 
         }//otherwise the situation is need bad or good. increment no reward.
 
