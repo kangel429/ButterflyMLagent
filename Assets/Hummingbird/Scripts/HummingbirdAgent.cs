@@ -35,11 +35,12 @@ public class HummingbirdAgent : Agent
     private const float BeakTipRadius = 0.008f;
     private bool isFrozen = false;
 
+    int numberOfGoodSteps = 0;
+    int numberOfBadSteps = 0;
 
-
-
+    public HumanHandAvatar humanHand;
     public GameObject humanHandAvatar; //owner of this agent
-   
+
 
     /// <summary>
     /// nectar obtained in the episode
@@ -49,6 +50,18 @@ public class HummingbirdAgent : Agent
     /// <summary>
     /// Initialize the agent
     /// </summary>
+    ///
+    public bool mUserExist;
+    public float mNearRadius = 0.3f;      // 50cm
+    public float mGoodAngelThreshold = 15.0f; // 15도
+    public float mBadAngelThreshold = 45.0f; // 30도
+
+    Vector3 flowerTargetPosition;
+
+
+    int agentNottInGoalHandTime;
+    int agentNottInGoalFowerTime;
+
     public override void Initialize()
     {
         rigidbody = GetComponent<Rigidbody>();
@@ -67,10 +80,34 @@ public class HummingbirdAgent : Agent
     {
         if (trainingMode)
         {
+            numberOfGoodSteps = 0;
+            numberOfBadSteps = 0;
+
             // reset flowers and one agent only
             flowerArea.ResetFlowers();
-        }
 
+            float random = Random.Range(0.0f, 1.0f);
+
+            Debug.Log("Episode start");
+            if (random < 0.5f)
+            {
+                //Debug.Log("In this time Flower");
+                mUserExist = false;
+                humanHandAvatar.SetActive(false);
+            }
+            else
+            {
+                //Debug.Log("In this time UserExist");
+                mUserExist = true;
+                if (humanHandAvatar.transform.position.y < 0)
+                {
+                    humanHandAvatar.transform.position = new Vector3(humanHandAvatar.transform.position.x, Random.Range(0.8f, 3.0f), humanHandAvatar.transform.position.z);
+                }
+
+                humanHandAvatar.SetActive(true);
+            }
+        }
+        //Debug.Log("In train mode");
         // reset nectar obtained
         NectarObtained = 0f;
 
@@ -88,18 +125,20 @@ public class HummingbirdAgent : Agent
 
         // move to safe random position
         MoveToSafeRandomPosition(inFrontOfFlower);
+        if (mUserExist)
+        {
+            float random = Random.Range(0.0f, 1.0f);
+            if (random < 0.5f)
+            {
+                Vector3 toHand = (humanHandAvatar.transform.position - this.gameObject.transform.position).normalized;
+                Quaternion r = Quaternion.LookRotation(toHand);
+                transform.rotation = r;
+            }
 
+        }
         // Recalculate nearest flower
         UpdateNearestFlower();
-        if (humanHandAvatar.transform.position.y < 1f)
-        {
-            humanHandAvatar.SetActive(false);
-        }
-        else
-        {
-            humanHandAvatar.SetActive(true);
 
-        }
 
     }
 
@@ -123,17 +162,17 @@ public class HummingbirdAgent : Agent
         Vector3 rotationVector = transform.rotation.eulerAngles;
         // calculate pitch and yaw
         float pitchChange = vectorAction[3];
-        float yawchange   = vectorAction[4];
+        float yawchange = vectorAction[4];
         // smooth rotation
         smoothPitchChange = Mathf.MoveTowards(
-            smoothPitchChange, pitchChange, 2f*Time.fixedDeltaTime);
+            smoothPitchChange, pitchChange, 2f * Time.fixedDeltaTime);
         smoothYawChange = Mathf.MoveTowards(
             smoothYawChange, yawchange, 2f * Time.fixedDeltaTime);
         // new pitch and new
         // clamp pitch to avoid flipping
         float pitch = rotationVector.x + smoothPitchChange * Time.fixedDeltaTime * pitchSpeed;
         if (pitch > 180f) pitch -= 360f;
-        pitch = Mathf.Clamp(pitch, - MaxPitchAngle, +MaxPitchAngle);
+        pitch = Mathf.Clamp(pitch, -MaxPitchAngle, +MaxPitchAngle);
 
         float yaw = rotationVector.y + smoothYawChange * Time.fixedDeltaTime * yawSpeed;
 
@@ -148,29 +187,44 @@ public class HummingbirdAgent : Agent
     /// <param name="sensor">The vector sensor</param>
     public override void CollectObservations(VectorSensor sensor)
     {
-
-
+        //Debug.Log(" UserExist  " + mUserExist);
+        // Debug.Log("In CollectObservations ");
+        sensor.AddObservation(mUserExist);//1
 
         if (humanHandAvatar != null && humanHandAvatar.activeSelf == true)
         {
-            sensor.AddObservation(this.gameObject.transform.localRotation.normalized);
-            Vector3 toHand = humanHandAvatar.transform.position - beakTip.position;
+
+            Vector3 toHand = humanHandAvatar.transform.position - this.gameObject.transform.position;
+
+            Vector3 targetDir = (toHand).normalized;
+            float dot = Vector3.Dot(transform.forward, targetDir);
+
+            //내적을 이용한 각 계산하기
+            // thetha = cos^-1( a dot b / |a||b|)
+            float AngleBetweenDegree = Mathf.Acos(dot) * Mathf.Rad2Deg;
+            //Debug.Log("1  :   "+ AngleBetweenDegree + "  "+ map(AngleBetweenDegree,0,180,-1,1));
+            float angle = 1 + (-1 + 1) * ((AngleBetweenDegree - 0) / (180 - 0));
+            if (float.IsNaN(angle))
+            {
+                sensor.AddObservation(new float[1]); //1
+
+            }
+            else
+            {
+                sensor.AddObservation(angle);
+
+            }
+
+            sensor.AddObservation(this.gameObject.transform.localRotation.normalized); //4
             // pointing to nearest flower 3
-            sensor.AddObservation(toHand.normalized);
+            sensor.AddObservation(toHand.normalized); // 3
             // dot product observation - beak tip in front of flower?
             // +1 -> infront, -1 -> behind 1
-            sensor.AddObservation(
-                Vector3.Dot(toHand.normalized, -humanHandAvatar.transform.up.normalized));
-            // beak tip point to flower 1
-            sensor.AddObservation(
-                Vector3.Dot(beakTip.forward.normalized, -humanHandAvatar.transform.up.normalized));
-            // relative distance from beek tip to flower 1
-            sensor.AddObservation(toHand.magnitude / FlowerArea.AreaDiameter);
-
+            sensor.AddObservation(toHand.magnitude / FlowerArea.AreaDiameter);//1
         }
         else
         {
-            sensor.AddObservation(new float[10]);
+            sensor.AddObservation(new float[9]);
         }
 
 
@@ -180,22 +234,40 @@ public class HummingbirdAgent : Agent
             // Observe the local rotation  4
             sensor.AddObservation(this.gameObject.transform.localRotation.normalized);
             Vector3 toFlower = nearestFlower.FlowerCenterVector - beakTip.position;
+            Vector3 targetDir = (toFlower).normalized;
+            float dot = Vector3.Dot(transform.forward, targetDir);
+
+            //내적을 이용한 각 계산하기
+            // thetha = cos^-1( a dot b / |a||b|)
+            float AngleBetweenDegree = Mathf.Acos(dot) * Mathf.Rad2Deg;
             // pointing to nearest flower  3
             sensor.AddObservation(toFlower.normalized);
-            // dot product observation - beak tip in front of flower?
-            // +1 -> infront, -1 -> behind  1
-            sensor.AddObservation(
-                Vector3.Dot(toFlower.normalized, -nearestFlower.FlowerUpVector.normalized));
-            // beak tip point to flower  1
-            sensor.AddObservation(
-                Vector3.Dot(beakTip.forward.normalized, -nearestFlower.FlowerUpVector.normalized));
+            //// dot product observation - beak tip in front of flower?
+            //// +1 -> infront, -1 -> behind  1
+            //sensor.AddObservation(
+            //    Vector3.Dot(toFlower.normalized, -nearestFlower.FlowerUpVector.normalized));
+            //// beak tip point to flower  1
+            //sensor.AddObservation(
+            //    Vector3.Dot(beakTip.forward.normalized, -nearestFlower.FlowerUpVector.normalized));
+            float angle = 1 + (-1 + 1) * ((AngleBetweenDegree - 0) / (180 - 0));
+            if (float.IsNaN(angle))
+            {
+                sensor.AddObservation(new float[1]); //1
+
+            }
+            else
+            {
+                sensor.AddObservation(angle);
+
+            }
             // relative distance from beek tip to flower  1
-            sensor.AddObservation(toFlower.magnitude / FlowerArea.AreaDiameter);
+            sensor.AddObservation(toFlower.magnitude / FlowerArea.AreaDiameter);//1
             // 10 total observations
+
         }
         else
         {
-            sensor.AddObservation(new float[10]);
+            sensor.AddObservation(new float[9]);
 
         }
 
@@ -307,6 +379,7 @@ public class HummingbirdAgent : Agent
                 potentialRotation = Quaternion.Euler(pitch, yaw, 0f);
             }
 
+
             // agent collision
             Collider[] colliders = Physics.OverlapSphere(potentialPosition, 0.05f);
             // safe position
@@ -318,7 +391,7 @@ public class HummingbirdAgent : Agent
         // set position, rotation
         transform.position = potentialPosition;
         transform.rotation = potentialRotation;
-        Vector3 RandomV = new Vector3(Random.Range(-1,2), Random.Range(-1, 2) , Random.Range(-1, 2));
+        Vector3 RandomV = new Vector3(Random.Range(-1, 2), Random.Range(0, 2), Random.Range(-1, 2));
         humanHandAvatar.transform.position = potentialPosition + RandomV;
     }
 
@@ -371,38 +444,112 @@ public class HummingbirdAgent : Agent
     /// Enter or stay in a trigger collider
     /// </summary>
     /// <param name="collider"></param>
+    ///
+    float reward;
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (trainingMode && other.CompareTag("hand"))
+        {
+            Debug.Log("OnTriggerExit - agent");
+            numberOfBadSteps++;
+            AddReward(-0.01f);
+
+            if (numberOfBadSteps > this.MaxStep * 0.7f)
+            {
+                Debug.Log("Failed the Goal");
+                SetReward(-1.0f);  // agent has failed to chieve the goal
+                EndEpisode();
+            }
+        }
+    }
+    ///
+
     private void TriggerEnterOrStay(Collider collider)
     {
+
+
+
+        if (collider.CompareTag("hand"))
+        {
+            agentNottInGoalHandTime = 0;
+            Debug.Log("Enter in hand   ");
+            AddReward(0.0015f);
+            numberOfGoodSteps++;
+
+
+            //check If Number Of GoodSteps is greater than 70% max of the episode
+            if (trainingMode && numberOfGoodSteps > this.MaxStep * 0.55f)
+            {
+
+                Debug.Log("hand - Sucess the Goal");
+                SetReward(1.0f);
+                EndEpisode();
+            }
+
+        }
+
+
         // check if colliding with nectar
         if (collider.CompareTag("nectar"))
         {
             Vector3 closestPointToBeakTip = collider.ClosestPoint(beakTip.position);
             // check if closest is close to tip
-            if (Vector3.Distance(beakTip.position, closestPointToBeakTip) < BeakTipRadius)
+            Flower flower = flowerArea.GetFlowerFromNectar(collider);
+            // Attemp to take 0.01 nectar
+            float nectarReceived = flower.Feed(0.01f);
+            // nectar obtained
+            NectarObtained += nectarReceived;
+            if (trainingMode)
             {
-                Flower flower = flowerArea.GetFlowerFromNectar(collider);
-                // Attemp to take 0.01 nectar
-                float nectarReceived = flower.Feed(0.01f);
-                // nectar obtained
-                NectarObtained += nectarReceived;
-                if (trainingMode)
-                {
-                    // calculate reward for getting nectar
-                    // Mathf.Clamp01 -> Clamps value between 0 and 1 and returns value
-                    float bonus = 0.02f * Mathf.Clamp01(
-                        Vector3.Dot(transform.forward.normalized,
-                            -nearestFlower.FlowerUpVector.normalized));
-                    AddReward(0.01f + bonus); // experiment, balance reward
+                agentNottInGoalFowerTime = 0;
 
-                }
-                // if flower empty, update nearest flower
+                // calculate reward for getting nectar
+                // Mathf.Clamp01 -> Clamps value between 0 and 1 and returns value
+                //float bonus = 0.02f * Mathf.Clamp01(
+                //    Vector3.Dot(transform.forward.normalized,
+                //        -nearestFlower.FlowerUpVector.normalized));
+
                 if (!flower.HasNectar)
                 {
-                    UpdateNearestFlower();
+                    AddReward(0.02f); // experiment, balance reward
                 }
+                else
+                {
+                    AddReward(0.0015f);
+                }
+
+                numberOfGoodSteps++;
+                if (numberOfGoodSteps > this.MaxStep * 0.25f)
+                {
+
+                    Debug.Log("Sucess eatting to flower");
+                    SetReward(1);
+                    EndEpisode();
+                }
+
+
+
+                Debug.Log("eatting flower");
+
             }
+            // if flower empty, update nearest flower
+            if (!flower.HasNectar)
+            {
+                UpdateNearestFlower();
+            }
+            //reward = GetCumulativeReward();
+            //Debug.Log("reward :  " + reward);
         }
+
+
+
+
+
+
     }
+
+
 
     /// <summary>
     /// when collides with something solid
@@ -410,26 +557,11 @@ public class HummingbirdAgent : Agent
     /// <param name="collision">collision info</param>
     private void OnCollisionEnter(Collision collision)
     {
-        if (trainingMode && collision.collider.CompareTag("hand")) //add myung jin
-        {
-            // calculate reward for getting nectar
-            // Mathf.Clamp01 -> Clamps value between 0 and 1 and returns value
-            float bonus = 0.02f * Mathf.Clamp01(
-                Vector3.Dot(transform.forward.normalized,
-                    -nearestFlower.FlowerUpVector.normalized));
-            AddReward(0.01f + bonus); // experiment, balance reward
-            
-            if(GetCumulativeReward()>3)
-            {
-                EndEpisode();
-            }
 
-
-            Debug.Log("crush Hand  :  " + GetCumulativeReward());
-        }
         if (trainingMode && collision.collider.CompareTag("boundary"))
         {
             // boundary negative reward
+            Debug.Log("crush boundary");
             AddReward(-0.5f); // discourage getting outside
         }
     }
@@ -438,13 +570,16 @@ public class HummingbirdAgent : Agent
     /// </summary>
     private void Update()
     {
-        if(humanHandAvatar.activeSelf == true && humanHandAvatar != null)
+        if (humanHandAvatar.activeSelf == true && humanHandAvatar != null)
         {
             Debug.DrawLine(beakTip.position, humanHandAvatar.transform.position, Color.blue);
+            //CheckIfOntherRightTrack(humanHandAvatar);
+
         }
         // Beektip to flower-line debug
         if (nearestFlower != null)
         {
+
             Debug.DrawLine(beakTip.position, nearestFlower.FlowerCenterVector, Color.green);
         }
     }
@@ -454,6 +589,39 @@ public class HummingbirdAgent : Agent
     private void FixedUpdate()
     {
 
+
+        if (mUserExist)
+        {
+            humanHandAvatar.SetActive(true);
+        }
+        else
+        {
+            humanHandAvatar.SetActive(false);
+
+        }
+
+
+        // Debug.Log($"GetCumulativeReward :   {GetCumulativeReward()},  stepCount :   { this.StepCount }, " +
+        //    $"numberOfGoodSteps : {numberOfGoodSteps}, numberOfBadSteps : {numberOfBadSteps}");
+        if (trainingMode)
+        {
+            AddReward(-1f / MaxStep);
+            if (mUserExist)
+            {
+                CheckIfInRightDirection(humanHandAvatar, mNearRadius);
+            }
+            else
+            {
+                CheckIfInRightDirection1();
+
+            }
+        }
+
+
+
+
+
+
         // avoid stolen nearest flower
         if (nearestFlower != null && !nearestFlower.HasNectar)
         {
@@ -461,35 +629,180 @@ public class HummingbirdAgent : Agent
         }
     }
 
-    //float shortDis;
-    //GameObject m_NearestHandavatar;
-    //public Collider[] hitColliders;
-    //public void FindNearestHandavAvatarObj()
-    //{
-    //    if (hitColliders.Length != 0)
-    //    {
-    //        m_NearestHandavatar = humanHandAvatar.gameObject;
-    //        shortDis = Vector3.Distance(this.gameObject.transform.position, m_NearestHandavatar.transform.position);
-            
-    //        for (int i = 0; i < hitColliders.Length; i++)
-    //        {
-    //            Collider found = hitColliders[i];
-    //            float Distance = Vector3.Distance(gameObject.transform.position, found.transform.position);
 
-    //            if (Distance < shortDis) // 위에서 잡은 기준으로 거리 재기
-    //            {
-    //                m_NearestHandavatar = found.gameObject;
+    //100스텝중에 반 이상이 범위 안에 들어오면 성공 - 안들어오면 실패
+    //30% 범위 이내면 실패 SetReward(-1);  70% 이상 범위안에 있으면 성공 SetReward(1);
+    //성공도 실패도 아닌데 방향이 맞으면 AddReward(0.01) 방향이 틀리면 0 reward
 
-    //                shortDis = Distance;
-    //            }
+    //sucessfull steps  max step의 70프로면 성공
+    //failed steps  max step 70프로 실패
+
+    // 
+    // 유저의 손이 있다면 손을 따라가는게 목표, 유저의 손이 없다면 꽃으로 가는게 목표
+    // 유저의 손이 있을 경우 - 손으로 가는게 목표 - 손을 향해 방향을 맞게 가면(전방 120도 방향)  addreward(0.01)
+    // 유저의 손이 없을 경우 - 꽂으로 가는게 목표 - 꽃을 향해 방향을 맞게 가면(전방 120도 방향)  addreward(0.01)
 
 
-    //        }
 
-    //       // Debug.Log("hitColliders : " + m_NearestHandavatar.name);
 
-    //    }
-    //    //return nearestObject;
+    public void CheckIfInRightDirection(GameObject targetObj, float nearRadius)// 방향이 올바르게 따라 잘 가고 있는지 체크해서 옮바르게 가면 보상 그렇지 않으면 처벌
+    { //forwarddirection과 vectTarget 각도가 15도 이하면 righthDirection
 
-    //}
+
+
+        Vector3 vecToTarget = targetObj.transform.position - this.gameObject.transform.position;
+
+
+
+        float distF = Vector3.Distance(targetObj.transform.position, this.gameObject.transform.position);
+
+
+        if (distF < nearRadius)
+        {
+            return;
+        }
+        //check if the agent has been in the near radius
+
+        //float Dot = Vector3.Dot(this.gameObject.transform.forward, vecToTarget); //Dot = abs(a)*abs(b)*cos th(두백터간의 각)
+        //                                                                         //cos th =Dot/(abs(a) * abs(b))
+
+        //float AngleBetween = Mathf.Acos(Dot / (this.gameObject.transform.forward.magnitude * vecToTarget.magnitude));
+
+
+        //float dot = Vector3.Dot( this.gameObject.transform.up , vecToTarget); //Dot = abs(a)*abs(b)*cos th(두백터간의 각)
+        //cos th =Dot/(abs(a) * abs(b))
+
+
+        //float AngleBetween = Mathf.Acos(dot) * Mathf.Rad2Deg;
+
+        Vector3 targetDir = (vecToTarget).normalized;
+        float dot = Vector3.Dot(transform.forward, targetDir);
+
+        //내적을 이용한 각 계산하기
+        // thetha = cos^-1( a dot b / |a||b|)
+        float AngleBetweenDegree = Mathf.Acos(dot) * Mathf.Rad2Deg;
+
+
+        //Debug.Log(AngleBetweenDegree);
+
+
+
+
+
+        if (AngleBetweenDegree < mGoodAngelThreshold && distF < 1f)
+        {
+            Debug.Log("hand - Good try   ");
+            AddReward(0.001f);
+
+            agentNottInGoalHandTime++;
+            if (agentNottInGoalHandTime > this.MaxStep * 0.3f)
+            {
+
+                Debug.Log("hand -Failed... only good try");
+                SetReward(-1.0f);
+                EndEpisode();
+            }
+        }
+        else if (AngleBetweenDegree > mBadAngelThreshold || distF > 3f)
+        {
+            Debug.Log("hand - bad try   ");
+            AddReward(-0.001f);
+            numberOfBadSteps++;
+            if (numberOfBadSteps > this.MaxStep * 0.7f)
+            {
+                Debug.Log("hand - Failed... do nothing ");
+                SetReward(-1.0f);  // agent has failed to chieve the goal
+                EndEpisode();
+            }
+
+        }//otherwise the situation is need bad or good. increment no reward.
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public void CheckIfInRightDirection1()// 방향이 올바르게 따라 잘 가고 있는지 체크해서 옮바르게 가면 보상 그렇지 않으면 처벌
+    { //forwarddirection과 vectTarget 각도가 15도 이하면 righthDirection
+
+        flowerTargetPosition = new Vector3(nearestFlower.FlowerCenterVector.x, nearestFlower.FlowerCenterVector.y, nearestFlower.FlowerCenterVector.z);
+
+        Vector3 targetObj = flowerTargetPosition;
+
+        Vector3 vecToTarget = targetObj - beakTip.transform.position;
+
+
+
+        float distF = Vector3.Distance(targetObj, beakTip.transform.position);
+
+
+        float upOrDown = Vector3.Dot(vecToTarget, -humanHandAvatar.transform.up);
+
+
+
+
+        if (distF < 0.025f)
+        {
+            return;
+        }
+
+
+        Vector3 targetDir = (vecToTarget).normalized;
+        float dot = Vector3.Dot(transform.forward, targetDir);
+
+        //내적을 이용한 각 계산하기
+        // thetha = cos^-1( a dot b / |a||b|)
+        float AngleBetweenDegree = Mathf.Acos(dot) * Mathf.Rad2Deg;
+
+
+        //Debug.Log(AngleBetweenDegree);
+
+
+
+
+
+        if (AngleBetweenDegree < 15 && distF < 1f)
+        {
+            Debug.Log("Flower - Good try  ");
+            AddReward(0.001f);
+
+            agentNottInGoalFowerTime++;
+            if (agentNottInGoalFowerTime > this.MaxStep * 0.3f)
+            {
+
+                Debug.Log("Flower -Failed... only good try");
+                SetReward(-1.0f);
+                EndEpisode();
+            }
+        }
+        if (AngleBetweenDegree > 45 || distF > 3f)
+        {
+            Debug.Log("Flower - bad try   ");
+            AddReward(-0.001f);
+            numberOfBadSteps++;
+            if (numberOfBadSteps > this.MaxStep * 0.7f)
+            {
+                Debug.Log("Flower -Failed... do nothing");
+                SetReward(-1.0f);  // agent has failed to chieve the goal
+                EndEpisode();
+            }
+
+        }//otherwise the situation is need bad or good. increment no reward.
+
+    }
+
+    float map(float value, float istart, float istop, float ostart, float ostop)
+    {
+        return ostart + (ostop - ostart) * ((value - istart) / (istop - istart));
+    }
+
 }

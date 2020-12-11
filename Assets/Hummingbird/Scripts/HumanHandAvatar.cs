@@ -5,10 +5,12 @@ using UnityEngine;
 public class HumanHandAvatar : MonoBehaviour
 {
     Vector3 worldPosition;
+
+
     private void Start()
     {
         //int random = (int)Random.Range(0, 2);
-        //if(random ==0)
+        //if (random == 0)
         //{
         //    gameObject.SetActive(true);
         //}
@@ -16,7 +18,20 @@ public class HumanHandAvatar : MonoBehaviour
         //{
         //    gameObject.SetActive(false);
         //}
-        
+
+    }
+
+    public void ResetHand()
+    {
+        int random = (int)Random.Range(0, 2);
+        if (random == 0)
+        {
+            gameObject.SetActive(true);
+        }
+        else
+        {
+            gameObject.SetActive(false);
+        }
     }
 
     // Update is called once per frame
@@ -31,6 +46,6 @@ public class HumanHandAvatar : MonoBehaviour
             worldPosition = hitData.point;
         }
 
-        //transform.position = new Vector3(worldPosition.x, 2, worldPosition.z);
+       transform.position = new Vector3(worldPosition.x, 2, worldPosition.z);
     }
 }

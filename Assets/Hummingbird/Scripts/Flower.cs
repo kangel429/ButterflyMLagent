@@ -81,9 +81,11 @@ public class Flower : MonoBehaviour
             // Disable flower and nectar collider
             flowerCollider.gameObject.SetActive(false);
             nectarCollider.gameObject.SetActive(false);
-
+            
             // change flower color for empty
             flowerMaterial.SetColor("_BaseColor", emptyFlowerColor);
+            Debug.Log("1");
+
         }
 
         // return amount of nectar that was taken
@@ -117,7 +119,8 @@ public class Flower : MonoBehaviour
 
         // find flower and nectar colliders
         flowerCollider = transform.Find("FlowerCollider").GetComponent<Collider>();
-        nectarCollider = transform.Find("FlowerNectarCollider").GetComponent<Collider>();
+        nectarCollider = transform.Find("FlowerCollider").GetComponent<Collider>();
+       // nectarCollider = transform.Find("FlowerNectarCollider").GetComponent<Collider>();
 
     }
 

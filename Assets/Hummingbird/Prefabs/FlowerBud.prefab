@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6937151539890909210}
   m_Layer: 0
   m_Name: Pistil.004
-  m_TagString: Untagged
+  m_TagString: nectar
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -92,7 +92,7 @@ GameObject:
   - component: {fileID: 4288465134724634915}
   m_Layer: 0
   m_Name: Pistil.003
-  m_TagString: Untagged
+  m_TagString: nectar
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -171,7 +171,7 @@ GameObject:
   - component: {fileID: 8809058475192386305}
   m_Layer: 0
   m_Name: Pistil.001
-  m_TagString: Untagged
+  m_TagString: nectar
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -250,7 +250,7 @@ GameObject:
   - component: {fileID: 5469705054773594206}
   m_Layer: 0
   m_Name: Pistil.002
-  m_TagString: Untagged
+  m_TagString: nectar
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -329,7 +329,7 @@ GameObject:
   - component: {fileID: 2643483231814198236}
   m_Layer: 0
   m_Name: FlowerNectarCollider
-  m_TagString: nectar
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -364,10 +364,10 @@ MeshCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2927126050478345264}
   m_Material: {fileID: 0}
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 4
-  m_Convex: 1
+  m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -5947745503187559320, guid: 8c77304d7888fac4eacdded42fcaac9d, type: 3}
 --- !u!1 &3054657392306330256
@@ -383,7 +383,7 @@ GameObject:
   - component: {fileID: 5768477149210439265}
   m_Layer: 0
   m_Name: FlowerCollider
-  m_TagString: Untagged
+  m_TagString: nectar
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -418,10 +418,10 @@ MeshCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3054657392306330256}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 4
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: -8400947189577481794, guid: 8c77304d7888fac4eacdded42fcaac9d, type: 3}
 --- !u!1 &3988997094061847789
@@ -437,7 +437,7 @@ GameObject:
   - component: {fileID: 7011887046698927147}
   m_Layer: 0
   m_Name: Pistil
-  m_TagString: Untagged
+  m_TagString: nectar
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

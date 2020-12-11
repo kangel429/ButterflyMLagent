@@ -465,6 +465,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: FlowerBud
       objectReference: {fileID: 0}
+    - target: {fileID: 7702261011759437261, guid: 4ae36240683645a4d9b1345225a2c823,
+        type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4ae36240683645a4d9b1345225a2c823, type: 3}
 --- !u!4 &8093318298809826493 stripped
