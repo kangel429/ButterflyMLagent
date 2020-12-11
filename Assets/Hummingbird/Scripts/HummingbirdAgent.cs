@@ -125,7 +125,7 @@ public class HummingbirdAgent : Agent
 
         // move to safe random position
         MoveToSafeRandomPosition(inFrontOfFlower);
-        if (mUserExist)
+        if (mUserExist && trainingMode)
         {
             float random = Random.Range(0.0f, 1.0f);
             if (random < 0.5f)
@@ -136,6 +136,7 @@ public class HummingbirdAgent : Agent
             }
 
         }
+        flowerArea.ResetFlower1();
         // Recalculate nearest flower
         UpdateNearestFlower();
 
@@ -401,15 +402,18 @@ public class HummingbirdAgent : Agent
     /// </summary>
     private void UpdateNearestFlower()
     {
+
         foreach (Flower flower in flowerArea.Flowers)
         {
             if (nearestFlower == null && flower.HasNectar)
             {
                 // no current nearest flower
                 nearestFlower = flower;
+                //Debug.Log("flower111,,,");
             }
             else if (flower.HasNectar)
             {
+                //Debug.Log("flower222,,,");
                 // calculate distance to this flower and current nearest
                 float distanceToFlower = Vector3.Distance(
                     flower.transform.position, beakTip.position);
@@ -419,6 +423,7 @@ public class HummingbirdAgent : Agent
                 if (!nearestFlower.HasNectar || distanceToFlower < distanceToCurrentNearestFlower)
                 {
                     nearestFlower = flower;
+                   // Debug.Log("flower,,,");
                 }
 
             }
@@ -616,7 +621,6 @@ public class HummingbirdAgent : Agent
 
             }
         }
-
 
 
 

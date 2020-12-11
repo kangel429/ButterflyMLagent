@@ -97,6 +97,7 @@ public class Flower : MonoBehaviour
     /// </summary>
     public void ResetFlower()
     {
+//        Debug.Log("c");
         // Refill the nectar
         NectarAmount = 1f;
 

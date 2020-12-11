@@ -37,6 +37,14 @@ public class FlowerArea : MonoBehaviour
             flower.ResetFlower();
         }
     }
+    public void ResetFlower1()
+    {
+//        Debug.Log("Dd");
+        foreach (Flower flower in Flowers)
+        {
+            flower.ResetFlower();
+        }
+    }
     
     /// <summary>
     /// Gets the Flower that a nectar collider belong

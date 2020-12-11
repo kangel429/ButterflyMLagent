@@ -6,7 +6,11 @@ public class HumanHandAvatar : MonoBehaviour
 {
     Vector3 worldPosition;
 
-
+    float circleSpeed = 1f;
+    float forwardSpeed = -1; // Assuming negative Z is towards the camera
+    float circleSize = 0.001f;
+    float circleGrowSpeed = 0.01f;
+    float zPos;
     private void Start()
     {
         //int random = (int)Random.Range(0, 2);
@@ -46,6 +50,17 @@ public class HumanHandAvatar : MonoBehaviour
             worldPosition = hitData.point;
         }
 
-       transform.position = new Vector3(worldPosition.x, 2, worldPosition.z);
+       //transform.position = new Vector3(worldPosition.x, 2, worldPosition.z);
+    }
+
+    private void FixedUpdate()
+    {
+        float xPos = Mathf.Sin(Time.time * circleSpeed) * circleSize;
+        float yPos = Mathf.Cos(Time.time * circleSpeed) * circleSize;
+        zPos += forwardSpeed * Time.deltaTime;
+
+        circleSize += circleGrowSpeed;
+        transform.position = new Vector3(xPos, yPos, zPos);
+
     }
 }
