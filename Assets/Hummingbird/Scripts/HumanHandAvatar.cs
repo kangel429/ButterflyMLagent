@@ -53,14 +53,14 @@ public class HumanHandAvatar : MonoBehaviour
        //transform.position = new Vector3(worldPosition.x, 2, worldPosition.z);
     }
 
-    private void FixedUpdate()
-    {
-        float xPos = Mathf.Sin(Time.time * circleSpeed) * circleSize;
-        float yPos = Mathf.Cos(Time.time * circleSpeed) * circleSize;
-        zPos += forwardSpeed * Time.deltaTime;
+    //private void FixedUpdate()
+    //{
+    //    float xPos = Mathf.Sin(Time.time * circleSpeed) * circleSize;
+    //    float yPos = Mathf.Cos(Time.time * circleSpeed) * circleSize;
+    //    zPos += forwardSpeed * Time.deltaTime;
 
-        circleSize += circleGrowSpeed;
-        transform.position = new Vector3(xPos, yPos, zPos);
+    //    circleSize += circleGrowSpeed;
+    //    transform.position = new Vector3(xPos, yPos, zPos);
 
-    }
+    //}
 }

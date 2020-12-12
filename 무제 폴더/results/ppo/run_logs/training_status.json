@@ -2,41 +2,23 @@
     "Hummingbird": {
         "checkpoints": [
             {
-                "steps": 1499976,
-                "file_path": "results/ppo/Hummingbird/Hummingbird-1499976.nn",
-                "reward": 0.016363635828549213,
-                "creation_time": 1607250184.464182
+                "steps": 499968,
+                "file_path": "results/ppo/Hummingbird/Hummingbird-499968.nn",
+                "reward": -0.9417549599893391,
+                "creation_time": 1607787531.7455528
             },
             {
-                "steps": 1999968,
-                "file_path": "results/ppo/Hummingbird/Hummingbird-1999968.nn",
-                "reward": 0.12652547157962213,
-                "creation_time": 1607251715.687936
-            },
-            {
-                "steps": 2001120,
-                "file_path": "results/ppo/Hummingbird/Hummingbird-2001120.nn",
-                "reward": 0.12652547157962213,
-                "creation_time": 1607251716.269158
-            },
-            {
-                "steps": 2499960,
-                "file_path": "results/ppo/Hummingbird/Hummingbird-2499960.nn",
-                "reward": null,
-                "creation_time": 1607254596.671653
-            },
-            {
-                "steps": 2731344,
-                "file_path": "results/ppo/Hummingbird/Hummingbird-2731344.nn",
-                "reward": 0.9163609147071838,
-                "creation_time": 1607255364.315521
+                "steps": 738048,
+                "file_path": "results/ppo/Hummingbird/Hummingbird-738048.nn",
+                "reward": 7.397302123834379,
+                "creation_time": 1607789926.2175748
             }
         ],
         "final_checkpoint": {
-            "steps": 2731344,
+            "steps": 738048,
             "file_path": "results/ppo/Hummingbird.nn",
-            "reward": 0.9163609147071838,
-            "creation_time": 1607255364.315521
+            "reward": 7.397302123834379,
+            "creation_time": 1607789926.2175748
         }
     },
     "metadata": {

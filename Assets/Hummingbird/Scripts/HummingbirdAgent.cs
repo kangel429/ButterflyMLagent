@@ -125,6 +125,7 @@ public class HummingbirdAgent : Agent
 
         // move to safe random position
         MoveToSafeRandomPosition(inFrontOfFlower);
+        flowerArea.ResetFlower1();
         if (mUserExist && trainingMode)
         {
             float random = Random.Range(0.0f, 1.0f);
@@ -134,9 +135,9 @@ public class HummingbirdAgent : Agent
                 Quaternion r = Quaternion.LookRotation(toHand); // 꽃과 동일한 로직이 아니다.
                 this.gameObject.transform.rotation = r;
             }
-
+            flowerArea.OnModeUser();
         }
-        flowerArea.ResetFlower1();
+        //flowerArea.ResetFlower1();
         // Recalculate nearest flower
         UpdateNearestFlower();
 
@@ -458,7 +459,7 @@ public class HummingbirdAgent : Agent
         {
             Debug.Log("OnTriggerExit - agent");
             numberOfBadSteps++;
-            AddReward(-0.01f);
+            AddReward(-0.0133f);
 
             //if (numberOfBadSteps > this.MaxStep * 0.7f)
             //{
@@ -479,7 +480,7 @@ public class HummingbirdAgent : Agent
         {
             agentNottInGoalHandTime = 0;
             Debug.Log("Enter in hand   ");
-            AddReward(0.0015f);
+            AddReward(0.0133f);
             numberOfGoodSteps++;
 
 
@@ -514,15 +515,15 @@ public class HummingbirdAgent : Agent
                 //float bonus = 0.02f * Mathf.Clamp01(
                 //    Vector3.Dot(transform.forward.normalized,
                 //        -nearestFlower.FlowerUpVector.normalized));
-                AddReward(0.0015f);
-                //if (!flower.HasNectar)
-                //{
-                //    AddReward(0.02f); // experiment, balance reward
-                //}
-                //else
-                //{
-                //    AddReward(0.0015f);
-                //}
+                //AddReward(0.0015f);
+                if (!flower.HasNectar)
+                {
+                    AddReward(0.0399f); // experiment, balance reward
+                }
+                else
+                {
+                    AddReward(0.0133f);
+                }
 
                 //numberOfGoodSteps++;
                 //if (numberOfGoodSteps > this.MaxStep * 0.25f)
@@ -696,8 +697,8 @@ public class HummingbirdAgent : Agent
         if (AngleBetweenDegree < mGoodAngelThreshold )
         {
             Debug.Log("hand - Good try   ");
-            AddReward(0.001f);
-
+            //AddReward(0.001f);
+            AddReward(0.008f/ (distF*2)); //(손과 타겟의 거리가 0.3001m), --> 0.0133 보상 // 손과 타겟의 거리가 5m이면 0.0008 보상을 받음
             //agentNottInGoalHandTime++;
             //if (agentNottInGoalHandTime > this.MaxStep * 0.3f)
             //{
@@ -710,7 +711,8 @@ public class HummingbirdAgent : Agent
         else if (AngleBetweenDegree > mBadAngelThreshold )
         {
             Debug.Log("hand - bad try   ");
-            AddReward(-0.001f);
+            //AddReward(-0.001f);
+            AddReward(-0.008f);//
             //numberOfBadSteps++;
             //if (numberOfBadSteps > this.MaxStep * 0.7f)
             //{
@@ -777,8 +779,8 @@ public class HummingbirdAgent : Agent
         if (AngleBetweenDegree < 15 && distF < 1f)
         {
             Debug.Log("Flower - Good try  ");
-            AddReward(0.001f);
-
+            //AddReward(0.008f / (distF * 2));
+            AddReward(0.008f / (distF * 2));
             //agentNottInGoalFowerTime++;
             //if (agentNottInGoalFowerTime > this.MaxStep * 0.3f)
             //{
@@ -791,7 +793,7 @@ public class HummingbirdAgent : Agent
         if (AngleBetweenDegree > 45 || distF > 3f)
         {
             Debug.Log("Flower - bad try   ");
-            AddReward(-0.001f);
+            AddReward(-0.008f);
             //numberOfBadSteps++;
             //if (numberOfBadSteps > this.MaxStep * 0.7f)
             //{

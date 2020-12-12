@@ -108,7 +108,17 @@ public class Flower : MonoBehaviour
         // change flower color for full
         flowerMaterial.SetColor("_BaseColor", fullFlowerColor);
     }
+    public void ResetFlower1()
+    {
+        NectarAmount = 0;
 
+        // Disable flower and nectar collider
+        flowerCollider.gameObject.SetActive(false);
+        nectarCollider.gameObject.SetActive(false);
+
+        // change flower color for empty
+        flowerMaterial.SetColor("_BaseColor", emptyFlowerColor);
+    }
     /// <summary>
     /// Called when the flower wakes up
     /// </summary>
