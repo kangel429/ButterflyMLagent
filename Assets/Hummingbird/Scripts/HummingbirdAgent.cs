@@ -251,6 +251,8 @@ public class HummingbirdAgent : Agent
             //// beak tip point to flower  1
             //sensor.AddObservation(
             //    Vector3.Dot(beakTip.forward.normalized, -nearestFlower.FlowerUpVector.normalized));
+
+
             float angle = 1 + (-1 + 1) * ((AngleBetweenDegree - 0) / (180 - 0));
             if (float.IsNaN(angle))
             {
@@ -776,7 +778,7 @@ public class HummingbirdAgent : Agent
 
 
 
-        if (AngleBetweenDegree < 15 && distF < 1f)
+        if (AngleBetweenDegree < mGoodAngelThreshold)
         {
             Debug.Log("Flower - Good try  ");
             //AddReward(0.008f / (distF * 2));
@@ -790,7 +792,7 @@ public class HummingbirdAgent : Agent
             //    EndEpisode();
             //}
         }
-        if (AngleBetweenDegree > 45 || distF > 3f)
+        if (AngleBetweenDegree > mBadAngelThreshold)
         {
             Debug.Log("Flower - bad try   ");
             AddReward(-0.008f);

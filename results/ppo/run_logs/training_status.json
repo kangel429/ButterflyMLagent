@@ -2,41 +2,17 @@
     "Hummingbird": {
         "checkpoints": [
             {
-                "steps": 1499968,
-                "file_path": "results/ppo/Hummingbird/Hummingbird-1499968.nn",
-                "reward": 65.12970009073615,
-                "creation_time": 1607806498.507636
-            },
-            {
-                "steps": 1999896,
-                "file_path": "results/ppo/Hummingbird/Hummingbird-1999896.nn",
-                "reward": 80.94469928528581,
-                "creation_time": 1607811130.533696
-            },
-            {
-                "steps": 2499968,
-                "file_path": "results/ppo/Hummingbird/Hummingbird-2499968.nn",
-                "reward": null,
-                "creation_time": 1607815756.870236
-            },
-            {
-                "steps": 2999896,
-                "file_path": "results/ppo/Hummingbird/Hummingbird-2999896.nn",
-                "reward": 79.18819268371747,
-                "creation_time": 1607820239.527246
-            },
-            {
-                "steps": 3365120,
-                "file_path": "results/ppo/Hummingbird/Hummingbird-3365120.nn",
-                "reward": null,
-                "creation_time": 1607823488.7633421
+                "steps": 284096,
+                "file_path": "results/ppo/Hummingbird/Hummingbird-284096.nn",
+                "reward": -15.684515427332371,
+                "creation_time": 1607836638.092293
             }
         ],
         "final_checkpoint": {
-            "steps": 3365120,
+            "steps": 284096,
             "file_path": "results/ppo/Hummingbird.nn",
-            "reward": null,
-            "creation_time": 1607823488.7633421
+            "reward": -15.684515427332371,
+            "creation_time": 1607836638.092293
         }
     },
     "metadata": {

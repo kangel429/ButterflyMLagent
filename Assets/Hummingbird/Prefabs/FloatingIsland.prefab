@@ -21107,6 +21107,11 @@ PrefabInstance:
       propertyPath: mUserExist
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3709692480684497757, guid: 1c87c473ce84a4903b58ae35071773b5,
+        type: 3}
+      propertyPath: mBadAngelThreshold
+      value: 18
+      objectReference: {fileID: 0}
     - target: {fileID: 4026308246050069884, guid: 1c87c473ce84a4903b58ae35071773b5,
         type: 3}
       propertyPath: m_BrainParameters.VectorObservationSize
@@ -21121,7 +21126,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Model
       value: 
-      objectReference: {fileID: 5022602860645237092, guid: 27e3058e5c9ac4c588efbf9c3e7e8bba,
+      objectReference: {fileID: 5022602860645237092, guid: 6c71dd96b9c834143ab6e9c6baaf95cf,
         type: 3}
     - target: {fileID: 5156723792392379465, guid: 1c87c473ce84a4903b58ae35071773b5,
         type: 3}
