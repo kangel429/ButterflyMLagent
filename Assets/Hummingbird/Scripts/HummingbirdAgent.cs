@@ -756,7 +756,7 @@ public class HummingbirdAgent : Agent
 
 
 
-        if (distF < 0.025f)
+        if (distF < mNearRadius)
         {
             return;
         }
