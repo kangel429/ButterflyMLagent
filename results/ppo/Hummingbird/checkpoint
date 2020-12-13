@@ -1,2 +1,2 @@
-model_checkpoint_path: "Hummingbird-284096.ckpt"
-all_model_checkpoint_paths: "Hummingbird-284096.ckpt"
+model_checkpoint_path: "Hummingbird-67072.ckpt"
+all_model_checkpoint_paths: "Hummingbird-67072.ckpt"

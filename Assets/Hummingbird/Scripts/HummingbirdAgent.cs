@@ -520,7 +520,7 @@ public class HummingbirdAgent : Agent
                 //AddReward(0.0015f);
                 if (!flower.HasNectar)
                 {
-                    AddReward(0.0399f); // experiment, balance reward
+                    AddReward(0.0135f); // experiment, balance reward
                 }
                 else
                 {
