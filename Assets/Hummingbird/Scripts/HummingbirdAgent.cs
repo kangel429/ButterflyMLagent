@@ -461,7 +461,7 @@ public class HummingbirdAgent : Agent
         {
             Debug.Log("OnTriggerExit - agent");
             numberOfBadSteps++;
-            AddReward(-0.0133f);
+            AddReward(-0.014f);
 
             //if (numberOfBadSteps > this.MaxStep * 0.7f)
             //{
@@ -482,7 +482,7 @@ public class HummingbirdAgent : Agent
         {
             agentNottInGoalHandTime = 0;
             Debug.Log("Enter in hand   ");
-            AddReward(0.0133f);
+            AddReward(0.014f);
             numberOfGoodSteps++;
 
 
@@ -520,11 +520,11 @@ public class HummingbirdAgent : Agent
                 //AddReward(0.0015f);
                 if (!flower.HasNectar)
                 {
-                    AddReward(0.0135f); // experiment, balance reward
+                    AddReward(0.001f); // experiment, balance reward
                 }
                 else
                 {
-                    AddReward(0.0133f);
+                    AddReward(0.014f);
                 }
 
                 //numberOfGoodSteps++;
@@ -778,7 +778,7 @@ public class HummingbirdAgent : Agent
 
 
 
-        if (AngleBetweenDegree < mGoodAngelThreshold)
+        if (AngleBetweenDegree < mGoodAngelThreshold && distF<1f)
         {
             Debug.Log("Flower - Good try  ");
             //AddReward(0.008f / (distF * 2));
