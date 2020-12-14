@@ -2,22 +2,46 @@
     "Hummingbird": {
         "checkpoints": [
             {
-                "steps": 67072,
-                "file_path": "results/ppo/Hummingbird/Hummingbird-67072.nn",
-                "reward": -29.188978331163526,
-                "creation_time": 1607863494.6287239
+                "steps": 3499968,
+                "file_path": "results\\ppo\\Hummingbird\\Hummingbird-3499968.nn",
+                "reward": 99.88447685912251,
+                "creation_time": 1607893870.994125
+            },
+            {
+                "steps": 3999896,
+                "file_path": "results\\ppo\\Hummingbird\\Hummingbird-3999896.nn",
+                "reward": 78.26081073979536,
+                "creation_time": 1607895490.6656785
+            },
+            {
+                "steps": 4499968,
+                "file_path": "results\\ppo\\Hummingbird\\Hummingbird-4499968.nn",
+                "reward": 107.27794612199068,
+                "creation_time": 1607897009.673888
+            },
+            {
+                "steps": 4999896,
+                "file_path": "results\\ppo\\Hummingbird\\Hummingbird-4999896.nn",
+                "reward": 53.37791247665882,
+                "creation_time": 1607898530.464112
+            },
+            {
+                "steps": 5001024,
+                "file_path": "results\\ppo\\Hummingbird\\Hummingbird-5001024.nn",
+                "reward": 50.47257395647466,
+                "creation_time": 1607898533.6321127
             }
         ],
         "final_checkpoint": {
-            "steps": 67072,
-            "file_path": "results/ppo/Hummingbird.nn",
-            "reward": -29.188978331163526,
-            "creation_time": 1607863494.6287239
+            "steps": 5001024,
+            "file_path": "results\\ppo\\Hummingbird.nn",
+            "reward": 50.47257395647466,
+            "creation_time": 1607898533.6321127
         }
     },
     "metadata": {
         "stats_format_version": "0.1.0",
-        "mlagents_version": "0.21.0.dev0",
-        "tensorflow_version": "2.3.0"
+        "mlagents_version": "0.20.0",
+        "tensorflow_version": "2.3.1"
     }
 }

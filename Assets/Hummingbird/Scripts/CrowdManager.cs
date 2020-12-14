@@ -1,10 +1,20 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using Unity.MLAgents;
+using Unity.MLAgents.Sensors;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
+
+using Unity.Barracuda;
+using UnityEngine.Serialization;
+using Unity.MLAgents.Actuators;
+using Unity.MLAgents.Sensors.Reflection;
 public class CrowdManager : MonoBehaviour
 {
+
+    public int userIndex = 2;
     public int agentStartingCount = 1;
     public List<GameObject> agents = new List<GameObject>();
     public GameObject agentPrefab;
@@ -18,14 +28,15 @@ public class CrowdManager : MonoBehaviour
 
     public Material[] agentMaterial;
 
-
-
+     
 
 
     [Tooltip("The color when the flower is full")]
     public Color[] butterflyColors;
 
+    public NNModel[] m_Model;
 
+    //    HummingbirdAgent agent;
     // Start is called before the first frame update
     void Start()
     {
@@ -41,7 +52,23 @@ public class CrowdManager : MonoBehaviour
 
             newAgent.name = "AgentFly " + i;
             Material agentMaterial = newAgent.GetComponentInChildren<SkinnedMeshRenderer>().material;
+            Material handMaterial = newAgent.transform.FindChild("HandAvatar").GetComponent<MeshRenderer>().material;
             agentMaterial.color = butterflyColors[i];
+            handMaterial.color = butterflyColors[i];
+            ReciveIndex reciveIndex = newAgent.GetComponentInChildren<ReciveIndex>();
+            if (i < userIndex)
+            {
+                reciveIndex.userDetect = true;
+                reciveIndex.m_Model = m_Model[i];
+            }
+            else
+            {
+                reciveIndex.userDetect = false;
+                reciveIndex.m_Model = m_Model[i];
+
+            }
+
+
             //Debug.Log(butterflyColors[i]);
 
             agents.Add(newAgent);

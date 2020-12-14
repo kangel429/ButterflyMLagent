@@ -35,8 +35,8 @@ public class HummingbirdAgent : Agent
     private const float BeakTipRadius = 0.008f;
     private bool isFrozen = false;
 
-    int numberOfGoodSteps = 0;
-    int numberOfBadSteps = 0;
+   // int numberOfGoodSteps = 0;
+   // int numberOfBadSteps = 0;
 
     public HumanHandAvatar humanHand;
     public GameObject humanHandAvatar; //owner of this agent
@@ -62,12 +62,19 @@ public class HummingbirdAgent : Agent
     int agentNottInGoalHandTime;
     int agentNottInGoalFowerTime;
 
+    float circleSize = 1f;
+    float circleSpeed = 1.5f;
+    float timeValue;
+    float circlePositionX;
+    float circlePositionZ;
+
+    ReciveIndex reciveIndex;
     public override void Initialize()
     {
         rigidbody = this.gameObject.GetComponent<Rigidbody>();
         flowerArea = this.gameObject.GetComponentInParent<FlowerArea>();
 
-
+        reciveIndex = this.gameObject.GetComponent<ReciveIndex>();
 
         // if not training mode, no max steps, play forever
         if (!trainingMode)
@@ -80,8 +87,8 @@ public class HummingbirdAgent : Agent
     {
         if (trainingMode)
         {
-            numberOfGoodSteps = 0;
-            numberOfBadSteps = 0;
+           // numberOfGoodSteps = 0;
+            //numberOfBadSteps = 0;
 
             // reset flowers and one agent only
             flowerArea.ResetFlowers();
@@ -89,6 +96,7 @@ public class HummingbirdAgent : Agent
             float random = Random.Range(0.0f, 1.0f);
 
             Debug.Log("Episode start");
+
             if (random < 0.5f)
             {
                 //Debug.Log("In this time Flower");
@@ -106,6 +114,17 @@ public class HummingbirdAgent : Agent
 
                 humanHandAvatar.SetActive(true);
             }
+        }
+
+        if (reciveIndex.userDetect)
+        {
+            mUserExist = true;
+            if (humanHandAvatar.transform.position.y < 0)
+            {
+                humanHandAvatar.transform.position = new Vector3(humanHandAvatar.transform.position.x, Random.Range(0.8f, 3.0f), humanHandAvatar.transform.position.z);
+            }
+
+            humanHandAvatar.SetActive(true);
         }
         //Debug.Log("In train mode");
         // reset nectar obtained
@@ -126,6 +145,9 @@ public class HummingbirdAgent : Agent
         // move to safe random position
         MoveToSafeRandomPosition(inFrontOfFlower);
         flowerArea.ResetFlower1();
+
+        UpdateNearestFlower();
+
         if (mUserExist && trainingMode)
         {
             float random = Random.Range(0.0f, 1.0f);
@@ -136,10 +158,10 @@ public class HummingbirdAgent : Agent
                 this.gameObject.transform.rotation = r;
             }
             flowerArea.OnModeUser();
+            nearestFlower = null;
         }
         //flowerArea.ResetFlower1();
         // Recalculate nearest flower
-        UpdateNearestFlower();
 
 
     }
@@ -339,7 +361,7 @@ public class HummingbirdAgent : Agent
     }
 
 
-
+    Vector3 circlePosition;
     /// <summary>
     /// Move the agent to safe random position, no collision
     /// or flower with beek
@@ -396,6 +418,7 @@ public class HummingbirdAgent : Agent
         transform.position = potentialPosition;
         transform.rotation = potentialRotation;
         Vector3 RandomV = new Vector3(Random.Range(-1, 2), Random.Range(0, 2), Random.Range(-1, 2));
+        circlePosition = potentialPosition + RandomV;
         humanHandAvatar.transform.position = potentialPosition + RandomV;
     }
 
@@ -460,7 +483,7 @@ public class HummingbirdAgent : Agent
         if (trainingMode && other.CompareTag("hand"))
         {
             Debug.Log("OnTriggerExit - agent");
-            numberOfBadSteps++;
+            //numberOfBadSteps++;
             AddReward(-0.014f);
 
             //if (numberOfBadSteps > this.MaxStep * 0.7f)
@@ -482,8 +505,8 @@ public class HummingbirdAgent : Agent
         {
             agentNottInGoalHandTime = 0;
             Debug.Log("Enter in hand   ");
-            AddReward(0.014f);
-            numberOfGoodSteps++;
+            AddReward(0.02f);
+            //numberOfGoodSteps++;
 
 
             ////check If Number Of GoodSteps is greater than 70% max of the episode
@@ -601,6 +624,8 @@ public class HummingbirdAgent : Agent
         if (mUserExist)
         {
             humanHandAvatar.SetActive(true);
+            nearestFlower = null;
+            
         }
         else
         {
@@ -616,6 +641,22 @@ public class HummingbirdAgent : Agent
             AddReward(-1f / MaxStep);
             if (mUserExist)
             {
+                if (timeValue > 999)
+                {
+                    timeValue = 0;
+                }
+                else
+                {
+                    timeValue += 0.1f;
+                }
+
+                circlePositionX = circlePosition.x + Mathf.Sin(Time.deltaTime * timeValue * circleSpeed) * circleSize;
+                circlePositionZ = circlePosition.z + Mathf.Cos(Time.deltaTime * timeValue * circleSpeed) * circleSize;
+                //zPos += forwardSpeed * Time.deltaTime;
+
+                //circleSize += circleGrowSpeed;
+                humanHandAvatar.transform.position = new Vector3(circlePositionX, circlePosition.y, circlePositionZ);
+
                 CheckIfInRightDirection(humanHandAvatar, mNearRadius);
             }
             else
@@ -631,6 +672,9 @@ public class HummingbirdAgent : Agent
 
         // avoid stolen nearest flower
         if (nearestFlower != null && !nearestFlower.HasNectar)
+        {
+            UpdateNearestFlower();
+        }else if(nearestFlower == null && mUserExist == false)
         {
             UpdateNearestFlower();
         }
@@ -714,7 +758,7 @@ public class HummingbirdAgent : Agent
         {
             Debug.Log("hand - bad try   ");
             //AddReward(-0.001f);
-            AddReward(-0.008f);//
+            AddReward(-0.01f);//
             //numberOfBadSteps++;
             //if (numberOfBadSteps > this.MaxStep * 0.7f)
             //{
@@ -795,7 +839,7 @@ public class HummingbirdAgent : Agent
         if (AngleBetweenDegree > mBadAngelThreshold)
         {
             Debug.Log("Flower - bad try   ");
-            AddReward(-0.008f);
+            AddReward(-0.01f);
             //numberOfBadSteps++;
             //if (numberOfBadSteps > this.MaxStep * 0.7f)
             //{
