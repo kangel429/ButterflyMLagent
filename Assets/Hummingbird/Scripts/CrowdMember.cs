@@ -31,7 +31,7 @@ public class CrowdMember : MonoBehaviour
     //public float ArrivalMaxSpeed = 0.2f;         // 0.2
 
     public Transform tartget;
-
+    
     //public GameObject predator;
 
     private void Start()

@@ -6,11 +6,6 @@ public class HumanHandAvatar : MonoBehaviour
 {
     Vector3 worldPosition;
 
-    float circleSpeed = 0.01f;
-    float forwardSpeed = -1; // Assuming negative Z is towards the camera
-    float circleSize = 0.001f;
-    float circleGrowSpeed = 0.01f;
-    float zPos;
     
     private void Start()
     {
@@ -51,7 +46,7 @@ public class HumanHandAvatar : MonoBehaviour
             worldPosition = hitData.point;
         }
 
-       //transform.position = new Vector3(worldPosition.x, 2, worldPosition.z);
+       transform.position = new Vector3(worldPosition.x, 2, worldPosition.z);
     }
 
 

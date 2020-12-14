@@ -11,6 +11,7 @@ TagManager:
   - butterfly
   - agent
   - hand
+  - AgentFly
   layers:
   - Default
   - TransparentFX

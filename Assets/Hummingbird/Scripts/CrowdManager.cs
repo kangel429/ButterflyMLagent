@@ -52,7 +52,7 @@ public class CrowdManager : MonoBehaviour
 
             newAgent.name = "AgentFly " + i;
             Material agentMaterial = newAgent.GetComponentInChildren<SkinnedMeshRenderer>().material;
-            Material handMaterial = newAgent.transform.FindChild("HandAvatar").GetComponent<MeshRenderer>().material;
+            Material handMaterial = newAgent.transform.Find("HandAvatar").GetComponent<MeshRenderer>().material;
             agentMaterial.color = butterflyColors[i];
             handMaterial.color = butterflyColors[i];
             ReciveIndex reciveIndex = newAgent.GetComponentInChildren<ReciveIndex>();
