@@ -9,10 +9,19 @@ public class HumanHand : MonoBehaviour
     int numberOfEncounter;
 
     public GameObject selectObj;
+    CrowdManager crowdManager;
+    public List<GameObject> agents ;
+    public UserInfo[] mAllusersInfo;
+    int selectUserId;
+
+    private void Awake()
+    {
+        crowdManager = GameObject.Find("CrowdManager").GetComponent<CrowdManager>();
+        
+    }
     private void Start()
     {
         numberOfEncounter = 0;
-
     }
 
 
@@ -30,7 +39,7 @@ public class HumanHand : MonoBehaviour
 
         transform.position = new Vector3(worldPosition.x, 1.5f, worldPosition.z);
 
-
+        ReciveAgentsInfo();
         FindNearestHandavAvatarObj();
 
     }
@@ -79,10 +88,21 @@ public class HumanHand : MonoBehaviour
                 {
 
                     HummingbirdAgent agent = selectObj.GetComponent<HummingbirdAgent>();
+                    UserInfo userInfo = agent.GetComponentInParent<UserInfo>();
                     agent.mUserExist = true;
                     this.gameObject.SetActive(false);
-                    //numberOfEncounter = 0;
-                }
+
+                    for (int i = 0; i < agents.Count; i++)
+                    {
+                        if(userInfo.userID != mAllusersInfo[i].userID)
+                        {
+                            mAllusersInfo[i].gameObject.SetActive(false);
+                        }
+                    }
+                        //numberOfEncounter = 0;
+
+                        //if(selectUserId == agents.user)
+                    }
                 else
                 {
                     Debug.Log("select");
@@ -102,5 +122,20 @@ public class HumanHand : MonoBehaviour
             selectObj = null;
         }
 
+    }
+
+    void ReciveAgentsInfo()
+    {
+        
+        if (agents.Count == 0 && crowdManager.agents != null)
+        {
+            agents = crowdManager.agents;
+            mAllusersInfo = new UserInfo[agents.Count];
+            for (int i=0; i< agents.Count; i++)
+            {
+                mAllusersInfo[i] = agents[i].GetComponent<UserInfo>();
+
+            }
+        }
     }
 }

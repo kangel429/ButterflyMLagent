@@ -49,10 +49,11 @@ public class CrowdManager : MonoBehaviour
                 Quaternion.Euler(Vector3.up * Random.Range(0f, 360f)),
                 this.transform
                 );
-
             newAgent.name = "AgentFly " + i;
+            UserInfo userInfo = newAgent.GetComponent<UserInfo>();
             Material agentMaterial = newAgent.GetComponentInChildren<SkinnedMeshRenderer>().material;
             Material handMaterial = newAgent.transform.Find("HandAvatar").GetComponent<MeshRenderer>().material;
+            userInfo.userID = i;
             agentMaterial.color = butterflyColors[i];
             handMaterial.color = butterflyColors[i];
             ReciveIndex reciveIndex = newAgent.GetComponentInChildren<ReciveIndex>();
@@ -72,6 +73,8 @@ public class CrowdManager : MonoBehaviour
             //Debug.Log(butterflyColors[i]);
 
             agents.Add(newAgent);
+            //agentPrefab.SetActive(false);
+
         }
 
         for (int i = 0; i < crowdStartingCount; i++)
@@ -87,7 +90,7 @@ public class CrowdManager : MonoBehaviour
             crowds.Add(newCrowd);
         }
 
-
+        agentPrefab.SetActive(false);
 
 
     }
