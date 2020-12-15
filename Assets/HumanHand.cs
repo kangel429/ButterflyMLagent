@@ -90,6 +90,7 @@ public class HumanHand : MonoBehaviour
                     HummingbirdAgent agent = selectObj.GetComponent<HummingbirdAgent>();
                     UserInfo userInfo = agent.GetComponentInParent<UserInfo>();
                     agent.mUserExist = true;
+                    agent.selectedUser = true;
                     this.gameObject.SetActive(false);
 
                     for (int i = 0; i < agents.Count; i++)

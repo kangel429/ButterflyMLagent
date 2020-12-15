@@ -69,6 +69,8 @@ public class HummingbirdAgent : Agent
     float circlePositionZ;
 
     ReciveIndex reciveIndex;
+
+    public bool selectedUser;
     public override void Initialize()
     {
         rigidbody = this.gameObject.GetComponent<Rigidbody>();
@@ -92,28 +94,34 @@ public class HummingbirdAgent : Agent
 
             // reset flowers and one agent only
             flowerArea.ResetFlowers();
-
-            float random = Random.Range(0.0f, 1.0f);
-
-            Debug.Log("Episode start");
-
-            if (random < 0.5f)
+            if (selectedUser)
             {
-                //Debug.Log("In this time Flower");
-                mUserExist = false;
-                humanHandAvatar.SetActive(false);
-            }
-            else
-            {
-                //Debug.Log("In this time UserExist");
-                mUserExist = true;
-                if (humanHandAvatar.transform.position.y < 0)
+
+                float random = Random.Range(0.0f, 1.0f);
+
+                Debug.Log("Episode start");
+
+                if (random < 0.5f)
                 {
-                    humanHandAvatar.transform.position = new Vector3(humanHandAvatar.transform.position.x, Random.Range(0.8f, 3.0f), humanHandAvatar.transform.position.z);
+                    //Debug.Log("In this time Flower");
+                    mUserExist = false;
+                    humanHandAvatar.SetActive(false);
+                }
+                else
+                {
+                    //Debug.Log("In this time UserExist");
+                    mUserExist = true;
+                    if (humanHandAvatar.transform.position.y < 0)
+                    {
+                        humanHandAvatar.transform.position = new Vector3(humanHandAvatar.transform.position.x, Random.Range(0.8f, 3.0f), humanHandAvatar.transform.position.z);
+                    }
+
+                    humanHandAvatar.SetActive(true);
                 }
 
-                humanHandAvatar.SetActive(true);
+
             }
+
         }
 
         if (reciveIndex.userDetect)
@@ -650,12 +658,12 @@ public class HummingbirdAgent : Agent
                     timeValue += 0.1f;
                 }
 
-                circlePositionX = circlePosition.x + Mathf.Sin(Time.deltaTime * timeValue * circleSpeed) * circleSize;
-                circlePositionZ = circlePosition.z + Mathf.Cos(Time.deltaTime * timeValue * circleSpeed) * circleSize;
-                //zPos += forwardSpeed * Time.deltaTime;
+                //circlePositionX = circlePosition.x + Mathf.Sin(Time.deltaTime * timeValue * circleSpeed) * circleSize;
+                //circlePositionZ = circlePosition.z + Mathf.Cos(Time.deltaTime * timeValue * circleSpeed) * circleSize;
+                ////zPos += forwardSpeed * Time.deltaTime;
 
-                //circleSize += circleGrowSpeed;
-                humanHandAvatar.transform.position = new Vector3(circlePositionX, circlePosition.y, circlePositionZ);
+                ////circleSize += circleGrowSpeed;
+                //humanHandAvatar.transform.position = new Vector3(circlePositionX, circlePosition.y, circlePositionZ);
 
                 CheckIfInRightDirection(humanHandAvatar, mNearRadius);
             }

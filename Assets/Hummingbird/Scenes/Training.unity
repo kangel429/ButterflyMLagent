@@ -243,12 +243,12 @@ PrefabInstance:
     - target: {fileID: 6306396343984080477, guid: 423815a9aec87fb48bbb6f0f35a66653,
         type: 3}
       propertyPath: agentStartingCount
-      value: 0
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 8582094519963758116, guid: 423815a9aec87fb48bbb6f0f35a66653,
         type: 3}
       propertyPath: trainingMode
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8703149456917459529, guid: 423815a9aec87fb48bbb6f0f35a66653,
         type: 3}
@@ -608,6 +608,25 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 423815a9aec87fb48bbb6f0f35a66653, type: 3}
+--- !u!1 &1381145413 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5478277758828865323, guid: 423815a9aec87fb48bbb6f0f35a66653,
+    type: 3}
+  m_PrefabInstance: {fileID: 92285162}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1381145415
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1381145413}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3ac4c26746b41d2ad107b20883f027, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  userID: 0
 --- !u!1 &1507185212
 GameObject:
   m_ObjectHideFlags: 0
@@ -1081,6 +1100,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   selectObj: {fileID: 0}
+  agents: []
+  mAllusersInfo: []
   m_NearestButterfly: {fileID: 1833776593}
 --- !u!33 &1605772525
 MeshFilter:
