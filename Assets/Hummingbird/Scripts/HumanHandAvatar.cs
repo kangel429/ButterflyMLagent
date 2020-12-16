@@ -5,19 +5,17 @@ using UnityEngine;
 public class HumanHandAvatar : MonoBehaviour
 {
     Vector3 worldPosition;
+    float circleSize = 1f;
+    float circleSpeed = 1.5f;
+    float timeValue;
+    float circlePositionX;
+    float circlePositionZ;
 
-    
+    public FlowerArea FloatingIsland;
     private void Start()
     {
-        //int random = (int)Random.Range(0, 2);
-        //if (random == 0)
-        //{
-        //    gameObject.SetActive(true);
-        //}
-        //else
-        //{
-        //    gameObject.SetActive(false);
-        //}
+        FloatingIsland = gameObject.GetComponentInParent<FlowerArea>();
+        Debug.Log(FloatingIsland.transform.name);
 
     }
 
@@ -46,7 +44,12 @@ public class HumanHandAvatar : MonoBehaviour
             worldPosition = hitData.point;
         }
 
-       transform.position = new Vector3(worldPosition.x, 2, worldPosition.z);
+        if(FloatingIsland.transform.name == "FloatingIsland")
+        {
+            transform.position = new Vector3(worldPosition.x, 2, worldPosition.z);
+
+        }
+
     }
 
 

@@ -94,9 +94,8 @@ public class HummingbirdAgent : Agent
 
             // reset flowers and one agent only
             flowerArea.ResetFlowers();
-            if (selectedUser)
+            if (flowerArea.transform.name != "FloatingIsland")
             {
-
                 float random = Random.Range(0.0f, 1.0f);
 
                 Debug.Log("Episode start");
@@ -118,9 +117,23 @@ public class HummingbirdAgent : Agent
 
                     humanHandAvatar.SetActive(true);
                 }
-
-
             }
+            else
+            {
+                if (selectedUser)
+                {
+                    mUserExist = true;
+                    if (humanHandAvatar.transform.position.y < 0)
+                    {
+                        humanHandAvatar.transform.position = new Vector3(humanHandAvatar.transform.position.x, Random.Range(0.8f, 3.0f), humanHandAvatar.transform.position.z);
+                    }
+
+                    humanHandAvatar.SetActive(true);
+
+
+                }
+            }
+
 
         }
 
@@ -657,15 +670,17 @@ public class HummingbirdAgent : Agent
                 {
                     timeValue += 0.1f;
                 }
+                if (flowerArea.transform.name != "FloatingIsland")
+                {
+                    circlePositionX = circlePosition.x + Mathf.Sin(Time.deltaTime * timeValue * circleSpeed) * circleSize;
+                    circlePositionZ = circlePosition.z + Mathf.Cos(Time.deltaTime * timeValue * circleSpeed) * circleSize;
+                    //zPos += forwardSpeed * Time.deltaTime;
 
-                //circlePositionX = circlePosition.x + Mathf.Sin(Time.deltaTime * timeValue * circleSpeed) * circleSize;
-                //circlePositionZ = circlePosition.z + Mathf.Cos(Time.deltaTime * timeValue * circleSpeed) * circleSize;
-                ////zPos += forwardSpeed * Time.deltaTime;
+                    //circleSize += circleGrowSpeed;
+                    humanHandAvatar.transform.position = new Vector3(circlePositionX, circlePosition.y, circlePositionZ);
 
-                ////circleSize += circleGrowSpeed;
-                //humanHandAvatar.transform.position = new Vector3(circlePositionX, circlePosition.y, circlePositionZ);
-
-                CheckIfInRightDirection(humanHandAvatar, mNearRadius);
+                    CheckIfInRightDirection(humanHandAvatar, mNearRadius);
+                }
             }
             else
             {

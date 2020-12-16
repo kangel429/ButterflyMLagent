@@ -9,14 +9,14 @@ public class HumanHand : MonoBehaviour
     int numberOfEncounter;
 
     public GameObject selectObj;
-    CrowdManager crowdManager;
+    public CrowdManager crowdManager;
     public List<GameObject> agents ;
     public UserInfo[] mAllusersInfo;
     int selectUserId;
 
     private void Awake()
     {
-        crowdManager = GameObject.Find("CrowdManager").GetComponent<CrowdManager>();
+        //crowdManager = GameObject.Find("CrowdManager").GetComponent<CrowdManager>();
         
     }
     private void Start()
