@@ -57,6 +57,8 @@ public class CrowdManager : MonoBehaviour
             agentMaterial.color = butterflyColors[i];
             handMaterial.color = butterflyColors[i];
             ReciveIndex reciveIndex = newAgent.GetComponentInChildren<ReciveIndex>();
+            newAgent.transform.rotation = Quaternion.Euler(0, 0, 0);
+
             if (i < userIndex)
             {
                 reciveIndex.userDetect = true;
