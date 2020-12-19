@@ -16,7 +16,7 @@ public class HumanHandAvatar : MonoBehaviour
     private void Start()
     {
         FloatingIsland = gameObject.GetComponentInParent<FlowerArea>();
-        Debug.Log(FloatingIsland.transform.name);
+//        Debug.Log(FloatingIsland.transform.name);
 
     }
 

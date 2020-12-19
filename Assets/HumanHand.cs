@@ -6,7 +6,7 @@ public class HumanHand : MonoBehaviour
 {
     Vector3 worldPosition;
 
-    int numberOfEncounter;
+    float numberOfEncounter;
 
     public GameObject selectObj;
     public CrowdManager crowdManager;
@@ -83,7 +83,7 @@ public class HumanHand : MonoBehaviour
         if(selectObj != m_NearestButterfly)
         {
             numberOfEncounter = 0;
-            Debug.Log("another select");
+            //Debug.Log("another select");
             selectObj = m_NearestButterfly;
         }
         else
@@ -95,25 +95,32 @@ public class HumanHand : MonoBehaviour
 
                     HummingbirdAgent agent = selectObj.GetComponent<HummingbirdAgent>();
                     UserInfo userInfo = agent.GetComponentInParent<UserInfo>();
-                    agent.mUserExist = true;
-                    agent.selectedUser = true;
-                    this.gameObject.SetActive(false);
 
-                    for (int i = 0; i < agents.Count; i++)
+                    if(userInfo != null)
                     {
-                        if(userInfo.userID != mAllusersInfo[i].userID)
+                        for (int i = 0; i < agents.Count; i++)
                         {
-                            mAllusersInfo[i].gameObject.SetActive(false);
+                            if (userInfo.userID != mAllusersInfo[i].userID)
+                            {
+                                mAllusersInfo[i].gameObject.SetActive(false);
+                            }
                         }
-                    }
-                        //numberOfEncounter = 0;
 
-                        //if(selectUserId == agents.user)
+                        agent.mUserExist = true;
+                        agent.selectedUser = true;
+                        this.gameObject.SetActive(false);
+                        
+
                     }
+                    numberOfEncounter = 0;
+
+                    //if(selectUserId == agents.user)
+                }
                 else
                 {
-                    Debug.Log("select");
-                    numberOfEncounter++;
+                   // Debug.Log("select    : " + numberOfEncounter);
+                    numberOfEncounter += 10*Time.deltaTime;
+
                 }
 
 
@@ -124,7 +131,7 @@ public class HumanHand : MonoBehaviour
         float dist = Vector3.Distance(selectObj.transform.position, this.gameObject.transform.position);
         if (dist > 2)
         {
-            Debug.Log("another selecting..");
+           // Debug.Log("another selecting..");
             numberOfEncounter = 0;
             selectObj = null;
         }
