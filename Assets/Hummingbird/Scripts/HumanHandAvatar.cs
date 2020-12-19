@@ -12,6 +12,7 @@ public class HumanHandAvatar : MonoBehaviour
     float circlePositionZ;
 
     public FlowerArea FloatingIsland;
+    bool checkMouseButton = true;
     private void Start()
     {
         FloatingIsland = gameObject.GetComponentInParent<FlowerArea>();
@@ -46,7 +47,14 @@ public class HumanHandAvatar : MonoBehaviour
 
         if(FloatingIsland.transform.name == "FloatingIsland")
         {
-            transform.position = new Vector3(worldPosition.x, 2, worldPosition.z);
+            if (Input.GetMouseButtonDown(0))
+            {
+                checkMouseButton = !checkMouseButton;
+            }
+
+            if (checkMouseButton)
+                transform.position = new Vector3(worldPosition.x, 1.5f, worldPosition.z);
+            //transform.position = new Vector3(worldPosition.x, 2, worldPosition.z);
 
         }
 

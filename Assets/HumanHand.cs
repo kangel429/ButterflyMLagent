@@ -14,6 +14,7 @@ public class HumanHand : MonoBehaviour
     public UserInfo[] mAllusersInfo;
     int selectUserId;
 
+    bool checkMouseButton;
     private void Awake()
     {
         //crowdManager = GameObject.Find("CrowdManager").GetComponent<CrowdManager>();
@@ -36,7 +37,12 @@ public class HumanHand : MonoBehaviour
         {
             worldPosition = hitData.point;
         }
+        if (Input.GetMouseButtonDown(0))
+        {
+            checkMouseButton = !checkMouseButton;
+        }
 
+        if(checkMouseButton)
         transform.position = new Vector3(worldPosition.x, 1.5f, worldPosition.z);
 
         ReciveAgentsInfo();
