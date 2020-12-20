@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.IO;
 
 public class HumanHand : MonoBehaviour
 {
@@ -15,10 +16,25 @@ public class HumanHand : MonoBehaviour
     int selectUserId;
 
     bool checkMouseButton;
+
+    string filePath = "/Users/myungjin/Desktop/aI/1/ButterflyMLagent/results/test.txt";
+    bool isFile;
+    int reciveNum;
     private void Awake()
     {
         //crowdManager = GameObject.Find("CrowdManager").GetComponent<CrowdManager>();
-        
+        FileInfo fileInfo = new FileInfo(filePath);
+
+        if (fileInfo.Exists)
+        {
+            isFile = true;
+            reciveNum = int.Parse(ReadTxt(filePath));
+        }
+        else
+        {
+            isFile = false;
+        }
+
     }
     private void Start()
     {
@@ -43,10 +59,20 @@ public class HumanHand : MonoBehaviour
         }
 
         if(checkMouseButton)
-        transform.position = new Vector3(worldPosition.x, 1.5f, worldPosition.z);
+        transform.position = new Vector3(worldPosition.x, worldPosition.y+1f, worldPosition.z);
 
         ReciveAgentsInfo();
-        FindNearestHandavAvatarObj();
+        if (isFile)
+        {
+            Debug.Log("파일이 있다");
+            DoItIfExsistData();
+        }
+        else
+        {
+            Debug.Log("파일이 없다");
+            FindNearestHandavAvatarObj();
+
+        }
 
     }
 
@@ -109,7 +135,8 @@ public class HumanHand : MonoBehaviour
                         agent.mUserExist = true;
                         agent.selectedUser = true;
                         this.gameObject.SetActive(false);
-                        
+                        WriteTxt(filePath, userInfo.userID.ToString());
+
 
                     }
                     numberOfEncounter = 0;
@@ -151,5 +178,49 @@ public class HumanHand : MonoBehaviour
 
             }
         }
+    }
+
+
+    void DoItIfExsistData()
+    {
+        for (int i = 0; i < agents.Count; i++)
+        {
+            mAllusersInfo[i].gameObject.SetActive(false);
+        }
+        mAllusersInfo[reciveNum].gameObject.SetActive(true);
+        HummingbirdAgent agent = mAllusersInfo[reciveNum].GetComponentInChildren<HummingbirdAgent>();
+        agent.mUserExist = true;
+        agent.selectedUser = true;
+        this.gameObject.SetActive(false);
+    }
+
+    void WriteTxt(string filePath, string message)
+    {
+
+        //FileStream fileStream
+        //    = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write);
+
+        StreamWriter writer = new StreamWriter(filePath);
+
+        writer.WriteLine(message);
+        writer.Close();
+    }
+
+    string ReadTxt(string filePath)
+    {
+        FileInfo fileInfo = new FileInfo(filePath);
+        string value = "";
+
+        if (fileInfo.Exists)
+        {
+            StreamReader reader = new StreamReader(filePath);
+            value = reader.ReadToEnd();
+            reader.Close();
+        }
+
+        else
+            value = "파일이 없습니다.";
+
+        return value;
     }
 }

@@ -53,7 +53,7 @@ public class HumanHandAvatar : MonoBehaviour
             }
 
             if (checkMouseButton)
-                transform.position = new Vector3(worldPosition.x, 1.5f, worldPosition.z);
+                transform.position = new Vector3(worldPosition.x, worldPosition.y + 1f, worldPosition.z);
             //transform.position = new Vector3(worldPosition.x, 2, worldPosition.z);
 
         }

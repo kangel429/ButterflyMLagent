@@ -526,7 +526,7 @@ public class HummingbirdAgent : Agent
         {
             agentNottInGoalHandTime = 0;
             Debug.Log("Enter in hand   ");
-            AddReward(0.02f);
+            AddReward(0.01f);
             //numberOfGoodSteps++;
 
 
@@ -564,11 +564,11 @@ public class HummingbirdAgent : Agent
                 //AddReward(0.0015f);
                 if (!flower.HasNectar)
                 {
-                    AddReward(0.001f); // experiment, balance reward
+                    AddReward(0.01f); // experiment, balance reward
                 }
                 else
                 {
-                    AddReward(0.014f);
+                    AddReward(0.01f);
                 }
 
                 //numberOfGoodSteps++;
@@ -731,7 +731,7 @@ public class HummingbirdAgent : Agent
         float distF = Vector3.Distance(targetObj.transform.position, this.gameObject.transform.position);
 
 
-        if (distF < nearRadius) //접근했을 때 reward는를 trigger함수에서 적용했음
+        if (distF < 0.1f) //접근했을 때 reward는를 trigger함수에서 적용했음
         {
             return;
         }
@@ -825,7 +825,7 @@ public class HummingbirdAgent : Agent
 
 
 
-        if (distF < mNearRadius)
+        if (distF < 0.02f)
         {
             return;
         }
